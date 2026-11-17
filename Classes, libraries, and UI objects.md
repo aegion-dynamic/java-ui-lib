@@ -28,6 +28,8 @@ This project
     page.MotionReadout                 COG, SOG, and DSM above the form
     page.EngagementParametersPanel     lower-right form when the window opens
     page.WeaponConfigurationPanel      lower-right form after F1
+    page.CreateWeaponConfigPanel      weapon form after F4, then the F1 key
+    page.SavedWeaponConfigPanel        stage 6, after OK on that weapon form
     page.model.Engagement              the values after they leave the form
     page.backend.EngagementService     the method that receives those values
     page.form.*                        the rows, cards, colours, and hints

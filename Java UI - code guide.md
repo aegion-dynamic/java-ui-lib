@@ -9,6 +9,8 @@ This project is a practice screen you can copy into a larger Java 1.6 program.
 | `src/main/java/page/MotionReadout.java` | The strip above the form. COG, then SOG in Kt and DSM in m. |
 | `src/main/java/page/EngagementParametersPanel.java` | Engagement Parameters. Shown in the lower-right slot when the window opens. |
 | `src/main/java/page/WeaponConfigurationPanel.java` | The Create Engagement form. F1 puts it in that same lower-right slot. |
+| `src/main/java/page/CreateWeaponConfigPanel.java` | Create Weapon Configuration. The first key after F4 opens it. |
+| `src/main/java/page/SavedWeaponConfigPanel.java` | Stage 6. OK on Create Weapon Configuration shows it. |
 | `src/main/java/page/form/` | The reusable rows, sections, and option groups. |
 | `pom.xml` | Tells Maven to compile this as Java 1.6 and which class to start. |
 | `.gitignore` | Tells git which generated files to leave out of the repository. |
@@ -564,6 +566,8 @@ When the window opens, Engagement Parameters is in the lower-right slot. The res
 Click **F1** or press the F1 key. Create Engagement replaces Engagement Parameters in that same slot. The other regions stay. The bottom **OK** copies every field into an `Engagement`. How that hand-off works is in `Create Engagement - how values reach the backend.md`.
 
 Click **F2** or press the F2 key after that OK. The same form comes back, filled with the values just saved. Change any field and press OK to store the edit. F2 before any save leaves the current page in place.
+
+Press **F4**, then the first key. The blue square still says F1 and the word beside it is WConfig. Create Weapon Configuration opens. OK on that form opens stage 6, with the values just entered. How to put those two screens on the other system is in `Weapon configuration - how to add it.md`.
 
 ---
 

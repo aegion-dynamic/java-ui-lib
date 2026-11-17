@@ -20,6 +20,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 
 import page.backend.EngagementService;
 import page.model.Engagement;
+import page.model.WeaponConfig;
 
 
 /**
@@ -27,6 +28,8 @@ import page.model.Engagement;
  * The window opens with Engagement Parameters in the lower-right form slot.
  * F1 calls create() and puts a blank Create Engagement form in that same slot.
  * F2 calls onF2() and shows that same form filled from the last save.
+ * After F4, the first key is command B1. It opens Create Weapon Configuration.
+ * OK on that form opens the saved stage 6 screen.
  * F4 swaps the footer to a second set of buttons.
  * A second F4 restores the first set. The other methods are empty
  * on purpose: fill those in with the functions from the real project.
@@ -51,7 +54,7 @@ public class FunctionPage extends JFrame {
 
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
     private static final String[] SECOND_TEXT = {
-        "Alt 1", "Alt 2", "Alt 3", "Swap", "Alt 5", "Alt 6",
+        "WConfig", "Alt 2", "Alt 3", "Swap", "Alt 5", "Alt 6",
         "Alt 7", "Alt 8", "Alt 9", "Alt 10", "Alt 11", "Alt 12"
     };
 
@@ -64,6 +67,8 @@ public class FunctionPage extends JFrame {
     private final JPanel formSlot = new JPanel(formCards);
     private EngagementParametersPanel parameters;
     private WeaponConfigurationPanel form;
+    private CreateWeaponConfigPanel weaponForm;
+    private SavedWeaponConfigPanel stage6;
     private EngagementService backend;
     private FunctionKeyBar footer;
     private boolean secondSet;
@@ -162,6 +167,8 @@ public class FunctionPage extends JFrame {
         }
         parameters = new EngagementParametersPanel();
         form = new WeaponConfigurationPanel();
+        weaponForm = new CreateWeaponConfigPanel();
+        stage6 = new SavedWeaponConfigPanel();
         try {
             UIManager.setLookAndFeel(previous);
         } catch (Exception ex) {
@@ -187,11 +194,26 @@ public class FunctionPage extends JFrame {
                 resultLabel.setText("Cancel");
             }
         });
+        weaponForm.getOkButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                WeaponConfig config = weaponForm.readForm();
+                stage6.apply(config);
+                formCards.show(formSlot, "stage6");
+                resultLabel.setText("Saved weapon configuration");
+            }
+        });
+        weaponForm.getCancelButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Cancel");
+            }
+        });
 
         formSlot.setBackground(DARK);
         formSlot.setPreferredSize(new Dimension(FORM_WIDTH, 400));
         formSlot.add(parameters, "parameters");
         formSlot.add(form, "create");
+        formSlot.add(weaponForm, "wconfig");
+        formSlot.add(stage6, "stage6");
         formCards.show(formSlot, "parameters");
 
         JPanel right = new JPanel(new BorderLayout(0, 4));
@@ -302,9 +324,11 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("F12");
     }
 
-    /** B1. Second-set operation for the first slot. */
+    /** F1 after the key swap. The blue square still says F1. The command is B1. */
     private void onB1() {
-        resultLabel.setText("B1");
+        weaponForm.reset();
+        formCards.show(formSlot, "wconfig");
+        resultLabel.setText("Create weapon configuration");
     }
 
     /** B2. */
