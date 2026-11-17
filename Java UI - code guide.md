@@ -6,8 +6,9 @@ This project is a practice screen you can copy into a larger Java 1.6 program.
 |---|---|
 | `src/main/java/page/FunctionKeyBar.java` | The footer. Draws twelve buttons. F4 swaps them for a second set. Does not decide what they do. |
 | `src/main/java/page/FunctionPage.java` | The window. Owns the one listener and the functions (`create()` and the rest). |
-| `src/main/java/page/EngagementParametersPanel.java` | The screen shown when the window opens. Engagement Parameters, with the four attack drop-downs. |
-| `src/main/java/page/WeaponConfigurationPanel.java` | The older Create Engagement practice form. It is not the screen that opens. |
+| `src/main/java/page/MotionReadout.java` | The strip above the form. COG, then SOG in Kt and DSM in m. |
+| `src/main/java/page/EngagementParametersPanel.java` | Engagement Parameters. Shown in the lower-right slot when the window opens. |
+| `src/main/java/page/WeaponConfigurationPanel.java` | The Create Engagement form. F1 puts it in that same lower-right slot. |
 | `src/main/java/page/form/` | The reusable rows, sections, and option groups. |
 | `pom.xml` | Tells Maven to compile this as Java 1.6 and which class to start. |
 | `.gitignore` | Tells git which generated files to leave out of the repository. |
@@ -562,11 +563,9 @@ mvn -q package
 $JAVA6_HOME/bin/java -jar target/java-ui-1.0.jar
 ```
 
-When the window opens, the screen is Engagement Parameters. Acoustic head mode, Attack mode, Wake Sensor, and Guidance Mode are drop-downs. Their lists are Passive / Simultaneous / Wake, Sub Surface / Surface, OFF / ON, and Bg Rider Out / CCM / TCCM.
+When the window opens, Engagement Parameters is in the lower-right slot. The rest of the window is the blue bar on top, the dark area on the left, the blue block under that, and the function keys. Acoustic head mode, Attack mode, Wake Sensor, and Guidance Mode are drop-downs. Their lists are Passive / Simultaneous / Wake, Sub Surface / Surface, OFF / ON, and Bg Rider Out / CCM / TCCM.
 
-Click **F1** or press the F1 key. The blue strip shows those four drop-down values. The screen stays Engagement Parameters. The other buttons report their own names. F10, F11, and F12 do the same for those keys.
-
-`WeaponConfigurationPanel` is still the older practice form. Its bottom **OK** copies every field into an `Engagement`. That form is not what opens at start. How that hand-off works is in `Create Engagement - how values reach the backend.md`.
+Click **F1** or press the F1 key. Create Engagement replaces Engagement Parameters in that same slot. The other regions stay. The bottom **OK** on Create Engagement copies every field into an `Engagement`. How that hand-off works is in `Create Engagement - how values reach the backend.md`. The other buttons report their own names.
 
 ---
 
@@ -577,16 +576,17 @@ The form is not one long class full of layout code. It is a screen assembled fro
 ```text
 FunctionPage
     |
-    +-- blue strip, top                         the last key that was pressed
+    +-- blue bar, top
     |
-    +-- EngagementParametersPanel, center       shown when the window opens
-            |
-            +-- ENGAGEMENT PARAMETERS
-            +-- WEAPON CONFIGURATION
-            +-- PARAMETER CONFIGURATION
-            |       drop-downs: Acoustic head mode, Attack mode,
-            |       Wake Sensor, Guidance Mode
-            +-- TARGET PARAMETERS
+    +-- left
+    |     +-- dark area
+    |     +-- blue block          messages such as "Create engagement"
+    |
+    +-- right
+          +-- MotionReadout     COG, SOG (Kt), DSM (m)
+          +-- form slot
+                Engagement Parameters when the window opens
+                Create Engagement after F1
 ```
 
 To make a similar screen, copy `WeaponConfigurationPanel`, change the title, and add your own rows and sections. You do not copy layout code into `FunctionPage`.
@@ -595,12 +595,7 @@ To make a similar screen, copy `WeaponConfigurationPanel`, change the title, and
 
 In `FunctionPage` the window has two regions above the footer:
 
-```java
-page.add(blue, BorderLayout.NORTH);
-page.add(parameters, BorderLayout.CENTER);
-```
-
-`parameters` is an `EngagementParametersPanel`. It is already on screen when the window opens. F1 does not replace it. The footer stays `SOUTH`.
+The lower-right slot is a `CardLayout`. It shows `EngagementParametersPanel` at open. `create()` (F1) shows `WeaponConfigurationPanel` in that same slot. The footer stays `SOUTH`.
 
 ### `Mono` — the shared look
 
@@ -636,21 +631,21 @@ page.add(parameters, BorderLayout.CENTER);
 ### `FormRow` — label plus anything
 
 ```java
-new FormRow("Field 5 *", field5)
+new FormRow("Track", field5)
 ```
 
-The label is fixed at 150 pixels. The component on the right takes the rest of the line. That component can be a text field, a combo, or a small panel. Field 5 is the combo on that line.
+The label is fixed at 150 pixels. The component on the right takes the rest of the line. That component can be a text field, a combo, or a small panel. Track is the combo on that line.
 
 ### `OptionGroup` — one choice among several
 
 ```java
-new OptionGroup(new String[] {"Choice A", "Choice B"}, 0, 2)
+new OptionGroup(new String[] {"Prosp Eng", "Real Engine"}, 0, 2)
 ```
 
 | Argument | Meaning |
 |---|---|
 | the string array | The choices, left to right, then the next line. |
-| `0` | Which choice starts selected. The first one. Pass `-1` for none. Group 3 starts on the second choice. |
+| `0` | Which choice starts selected. The first one. Pass `-1` for none. Linked Launch starts on the second choice, No. |
 | `2` | How many choices sit on one line. |
 
 The buttons share one `ButtonGroup`, so selecting one clears the others. `getSelected()` returns the text of the selected button, or `""` when nothing is selected.
@@ -676,7 +671,7 @@ The header is a triangle and a title. A mouse click calls `setOpen`. Open shows 
 
 `CheckGroup` is the check-box version of `OptionGroup`. More than one box can be ticked. `getSelected()` joins the ticked labels with a comma.
 
-`HintField` and `HintArea` show grey hint text (“Enter field 1”, “Enter field 6”). Java 6 has no placeholder on a text field, so these classes clear the hint when the field gains focus and put it back if the user leaves the field empty. `getValue()` returns `""` while the hint is still showing.
+`HintField` and `HintArea` show grey hint text (“Enter Engagement No”, “Enter comments...”). Java 6 has no placeholder on a text field, so these classes clear the hint when the field gains focus and put it back if the user leaves the field empty. `getValue()` returns `""` while the hint is still showing.
 
 `SectionPanel`, the triangle that opens and closes, is still in `page/form` for a screen that needs it. Create Engagement does not use it.
 
@@ -684,17 +679,17 @@ The header is a triangle and a title. A mouse click calls `setOpen`. Open shows 
 
 This class only chooses what the pieces say. The order in `form()` is the order on screen:
 
-1. Title “Create Engagement”, and **×** to hide the panel.
-2. Field 1 and Field 2. Both are required on the label (`*`) and start as hints.
-3. Section 1, inside one card:
-   - Group 1: Choice A or Choice B. Choice A starts selected.
-   - Group 2: Choice C and Choice D. Either, both, or neither.
-   - Group 3: Choice E or Choice F. Choice F starts selected. Under that, Field 3 starts at `0`, with its own small OK.
-   - Group 4: six choices, two per line. Choice 1 starts selected.
-   - Group 5: the combo “Choice G”.
-4. Section 2: P1/P2, P3/P4, P5/P6, P7/Field 4, P8/P9. Field 4 is a combo set to Choice H. The numbers are sample values.
-5. Section 3: Field 5, a combo set to “Choice I”.
-6. Section 4, a hint area (Field 6).
+1. Title “CREATE ENGAGEMENT”, and **×** to hide the panel.
+2. Eng No and Engagement Name. Both start as hints.
+3. ENGAGEMENT CONFIGURATION, inside one card:
+   - Engagement State Selection: Prosp Eng or Real Engine. Prosp Eng starts selected.
+   - Weapon Select: ETH WVR or ETH WEXE. ETH WVR starts selected.
+   - Linked Launch: Yes or No. No starts selected. Under that, Torpedo Distance starts at `0`, with its own small OK.
+   - Tube Select: six tubes, two per line. Tube 1 starts selected.
+   - Weapon Configuration Selection: Default Sub Surface War or Default Surface War.
+4. TARGET PARAMETERS: TB/RB, TP/Dp, Tpe/TCa, ATg/Type, Long/Lat. Type is Surface or Sub Surface. The numbers and the two positions are the sample values.
+5. TARGET SELECTION: Track, a combo set to “Select Track”, with Automatic and Manual.
+6. COMMENTS, a hint area.
 7. Cancel, and the cyan OK, fixed under the scrolling form.
 
 Each parameter name is stored in a map when the field is built:
@@ -703,7 +698,7 @@ Each parameter name is stored in a map when the field is built:
 private final Map<String, JTextField> parameters = new LinkedHashMap<String, JTextField>();
 ```
 
-`LinkedHashMap` is a Java 6 map that remembers insertion order. `getParameter("P1")` looks the field up and returns what was typed. A missing name returns `""` instead of throwing.
+`LinkedHashMap` is a Java 6 map that remembers insertion order. `getParameter("TB")` looks the field up and returns what was typed. A missing name returns `""` instead of throwing.
 
 The constructor switches to the classic Metal look before it builds the controls, then puts the previous look back in a `finally` block. The `finally` runs even if building throws. Controls already created keep this form’s colours. The function-key bar is created after this constructor returns, so it keeps the normal look.
 

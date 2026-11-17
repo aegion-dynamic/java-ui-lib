@@ -49,7 +49,7 @@ The split used here:
 
 In the other project, keep this split. Find the method that already saves an engagement and call it from the OK listener, passing the object you just filled. Do not pass the panel.
 
-The small **OK** next to Field 3 does not do this. Only the **OK** at the bottom of the form calls `readForm()` and then `create()`.
+The small **OK** next to Torpedo Distance does not do this. Only the **OK** at the bottom of the form calls `readForm()` and then `create()`.
 
 ---
 
@@ -69,43 +69,41 @@ public Engagement readForm() {
 }
 ```
 
-The labels on the form are abstract (`Field 1`, `Group 1`, `Choice A`, `P1`). The same words are the Java names. The real names are not in this sample.
+The labels on the form are the names from the Create Engagement screen (`Eng No`, `TB`, `Tube 1`). The Java properties stay short (`field1`, `p1`, `group4`). `readForm()` is the place that joins a label to a property.
 
 Each setter matches one control:
 
 | What you see | How it is read | Where it lands |
 |---|---|---|
-| Field 1 | `field1.getValue()` | `setField1` |
-| Field 2 | `field2.getValue()` | `setField2` |
-| Choice A / Choice B | `group1.getSelected()` | `setGroup1` |
-| Choice C, Choice D | `group2.getSelected()` | `setGroup2` |
-| Choice E / Choice F | `group3.getSelected()` | `setGroup3` |
-| Field 3 | `field3.getText()` | `setField3` |
-| Choice 1 … Choice 6 | `group4.getSelected()` | `setGroup4` |
-| Group 5 combo | `selected(group5)` | `setGroup5` |
-| P1, P2, P3, P4, P5, P6, P7 | `getParameter("P1")` and the same for the other names | `setP1`, `setP2`, `setP3`, `setP4`, `setP5`, `setP6`, `setP7` |
-| Field 4 combo | `selected(field4)` | `setField4` |
-| P8, P9 | `getParameter("P8")`, `getParameter("P9")` | `setP8`, `setP9` |
-| Field 5 combo | `selected(field5)` | `setField5` |
-| Field 6 | `field6.getValue()` | `setField6` |
+| Eng No | `field1.getValue()` | `setField1` |
+| Engagement Name | `field2.getValue()` | `setField2` |
+| Prosp Eng / Real Engine | `group1.getSelected()` | `setGroup1` |
+| ETH WVR / ETH WEXE | `group2.getSelected()` | `setGroup2` |
+| Yes / No | `group3.getSelected()` | `setGroup3` |
+| Torpedo Distance | `field3.getText()` | `setField3` |
+| Tube 1 … Tube 6 | `group4.getSelected()` | `setGroup4` |
+| Weapon Configuration Selection | `selected(group5)` | `setGroup5` |
+| TB, RB, TP, Dp, Tpe, TCa, ATg | `getParameter("TB")` and the same for the other labels | `setP1`, `setP2`, `setP3`, `setP4`, `setP5`, `setP6`, `setP7` |
+| Type | `selected(field4)` | `setField4` |
+| Long, Lat | `getParameter("Long")`, `getParameter("Lat")` | `setP8`, `setP9` |
+| Track | `selected(field5)` | `setField5` |
+| Comments | `field6.getValue()` | `setField6` |
 
-`getSelected()` on a radio group returns the label of the selected button, for example `"Choice A"` or `"Choice 1"`. If nothing is selected it returns `""`.
-
-`group2.getSelected()` joins the ticked boxes. None ticked is `""`. Both ticked is `"Choice C, Choice D"`.
+`getSelected()` on a radio group returns the label of the selected button, for example `"Prosp Eng"` or `"Tube 1"`. If nothing is selected it returns `""`.
 
 `selected(box)` is the combo version. `getSelectedItem()` returns an `Object`. The helper turns it into a `String`, or `""` when the combo has no item.
 
-`getParameter("P1")` looks up the text field that was stored under the name `"P1"` when the row was built. The name must match the label used in `parameterPair`. `"P1"` finds the field. `"p1"` does not.
+`getParameter("TB")` looks up the text field that was stored under the name `"TB"` when the row was built. The name must match the label used in `parameterPair`. `"TB"` finds the field. `"tb"` does not.
 
 ---
 
 ## 3. Hint text is not a value
 
-Field 1, Field 2, and Field 6 start with grey hint text: “Enter field 1”, “Enter field 2”, “Enter field 6”.
+Eng No, Engagement Name, and Comments start with grey hint text: “Enter Engagement No”, “Enter Engagement Name”, “Enter comments...”.
 
 Those fields are `HintField` and `HintArea`. While the hint is showing, `getValue()` returns `""`. It does not return the hint sentence.
 
-`getText()` would return the hint, which is why `readForm()` uses `getValue()` for those three. Field 3 and the parameter boxes are ordinary fields, so `getText()` is the right call for them.
+`getText()` would return the hint, which is why `readForm()` uses `getValue()` for those three. Torpedo Distance and the parameter boxes are ordinary fields, so `getText()` is the right call for them.
 
 If the user types a number and then deletes it, the hint comes back and `getValue()` is `""` again.
 

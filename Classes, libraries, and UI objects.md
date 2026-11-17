@@ -25,8 +25,9 @@ Java itself
 This project
     page.FunctionPage                  the window
     page.FunctionKeyBar                the F1–F12 footer
-    page.EngagementParametersPanel     the screen shown when the window opens
-    page.WeaponConfigurationPanel      the older Create Engagement practice form
+    page.MotionReadout                 COG, SOG, and DSM above the form
+    page.EngagementParametersPanel     lower-right form when the window opens
+    page.WeaponConfigurationPanel      lower-right form after F1
     page.model.Engagement              the values after they leave the form
     page.backend.EngagementService     the method that receives those values
     page.form.*                        the rows, cards, colours, and hints
@@ -74,12 +75,19 @@ Swing draws a tree of components. A component is a rectangle. A container is a c
 
 ```text
 FunctionPage                         a JFrame, the operating-system window
-└─ page                              a JPanel, BorderLayout, light blue
-   ├─ NORTH   resultLabel            the last key that was pressed
-   ├─ CENTER  EngagementParametersPanel
-   │     the screen at open: cyan section bars, fields, and four drop-downs
+└─ page
+   ├─ NORTH   blue bar
+   ├─ CENTER  stage
+   │  ├─ left
+   │  │  ├─ dark area
+   │  │  └─ blue block                resultLabel
+   │  └─ right
+   │     ├─ MotionReadout              COG, SOG (Kt), DSM (m)
+   │     └─ form slot
+   │        ├─ EngagementParametersPanel    at open
+   │        └─ WeaponConfigurationPanel     after F1
    └─ SOUTH  FunctionKeyBar          F1 through F12
-      └─ SOUTH  row                  twelve JButtons in a FlowLayout
+      └─ SOUTH  row                  twelve black keys in one row
 ```
 
 `BorderLayout.EAST` is the right-hand region. `SOUTH` is the bottom. `CENTER` takes whatever space is left.
@@ -166,7 +174,7 @@ A layout is an object you give to a container with `setLayout`. When the contain
 
 The window uses it for “form on the right, footer on the bottom, blue area in the middle.” The form uses it for “title on top, buttons on the bottom, scrolling body in the middle.” `FormRow` uses it for “label on the left, field in the center.”
 
-`new BorderLayout(8, 0)` sets a horizontal gap of 8 pixels and a vertical gap of 0. `namedField` uses that so the short name (`P1`, `P8`) sits 8 pixels left of the text field.
+`new BorderLayout(8, 0)` sets a horizontal gap of 8 pixels and a vertical gap of 0. `namedField` uses that so the short name (`TB`, `Long`) sits 8 pixels left of the text field.
 
 **`FlowLayout`** places children left to right in one row, at their preferred size. When the row is full, it wraps. It does not stretch children.
 
@@ -192,7 +200,7 @@ Six choices and 2 columns produce 3 rows. The order is row by row: Choice 6, Cho
 
 **`GridBagLayout`** places children with a constraint object per child. `GroupLabel` uses it for “line, title, line” in one row. The lines have `weightx = 1` and `fill = HORIZONTAL`, so they grow and the title stays in the middle at its own width. `GridBagConstraints.RELATIVE` (the default gridx) means “the next cell.”
 
-**`Box`** is a container, and it also has static factories for invisible spacers. `Box.createVerticalStrut(8)` is an invisible component whose height is 8 pixels. The form inserts one between Field 1 and Field 2. The strut is not a field and it is not copied into `Engagement`.
+**`Box`** is a container, and it also has static factories for invisible spacers. `Box.createVerticalStrut(8)` is an invisible component whose height is 8 pixels. The form inserts one between Eng No and Engagement Name. The strut is not a field and it is not copied into `Engagement`.
 
 ### `java.awt.event` — what the user did
 
@@ -277,7 +285,7 @@ public class FunctionPage extends JFrame {
 1. The input map binds a `KeyStroke` to a name. The footer uses the name `"function-F1"`.
 2. The action map binds that name to an `Action`.
 
-`getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)` means the binding works when this window is the active window, including while focus is in a text field. Function keys are not characters a text field types, so F1 still reaches this map while the user is in Field 1. The `AbstractAction` then builds an `ActionEvent` whose command is `"F1"` and hands it to the same listener the button uses.
+`getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)` means the binding works when this window is the active window, including while focus is in a text field. Function keys are not characters a text field types, so F1 still reaches this map while the user is in Eng No. The `AbstractAction` then builds an `ActionEvent` whose command is `"F1"` and hands it to the same listener the button uses.
 
 There are three map conditions. `WHEN_FOCUSED` works only when that component itself has focus. `WHEN_IN_FOCUSED_WINDOW` is the one the footer needs. `WHEN_ANCESTOR_OF_FOCUSED_COMPONENT` works when focus is inside a child.
 
@@ -322,9 +330,9 @@ If `setLookAndFeel` throws, the empty `catch` keeps the look that is already ins
 | Type | Role |
 |---|---|
 | `Map<String, JTextField>` | The field type of `parameters`. A map looks up a value by a key. |
-| `LinkedHashMap<String, JTextField>` | The concrete map. `get` and `put` are the methods used. Keys are the labels `"P1"`, `"P2"`, `"P3"`, `"P4"`, `"P5"`, `"P6"`, `"P7"`, `"P8"`, `"P9"`. |
+| `LinkedHashMap<String, JTextField>` | The concrete map. `get` and `put` are the methods used. Keys are the labels `"TB"`, `"RB"`, `"TP"`, `"Dp"`, `"Tpe"`, `"TCa"`, `"ATg"`, `"Long"`, `"Lat"`. |
 
-`parameters.put(name, field)` runs inside `namedField`, at the moment the row is built. `getParameter("P1")` later does `parameters.get("P1")` and returns that field’s `getText()`. The key must match the string passed to `namedField`. `"P1"` finds the field. `"p1"` misses, `get` returns `null`, and `getParameter` returns `""`.
+`parameters.put(name, field)` runs inside `namedField`, at the moment the row is built. `getParameter("TB")` later does `parameters.get("TB")` and returns that field’s `getText()`. The key must match the string passed to `namedField`. `"TB"` finds the field. `"tb"` misses, `get` returns `null`, and `getParameter` returns `""`.
 
 `LinkedHashMap` remembers insertion order when someone iterates the keys. `readForm()` does not iterate. It asks for each name. The map is the link between a label on the screen and the `JTextField` object that holds what the user typed.
 
@@ -364,8 +372,10 @@ One object of this class is the sample window. It owns the blue page, the form, 
 | `secondSet` | False on the first set (F1–F12). True after F4, until F4 is pressed again. |
 | `SECOND_KEYS` | The twelve captions of the second set: B1, B2, B3, F4, B5 through B12. |
 | `FunctionPage()` | Builds the tree, wires OK and Cancel, sizes the window, centres it. |
-| `parameters` | `EngagementParametersPanel`. It fills the window when the program starts. |
-| `create()` | F1. Writes the four attack drop-downs on the blue strip. The screen stays put. |
+| `parameters` | Engagement Parameters. Visible in the lower-right slot when the window opens. |
+| `form` | Create Engagement. F1 puts this panel in that same slot. |
+| `formSlot` | The lower-right area. A `CardLayout` holds the two forms. |
+| `create()` | F1. Shows Create Engagement in the form slot. |
 | `onF4()` | Swaps the footer to the second set, or back to the first set. |
 | `onF2()` … `onF12()` | First-set operations, except F4. Each one writes its key name on the label. |
 | `onB1()` … `onB12()` | Second-set operations. There is no `onB4`. Slot 4 is F4 in both sets. |
@@ -437,41 +447,41 @@ The constructor:
 
 | Field | Control | Starts as |
 |---|---|---|
-| `field1` | `HintField`, 18 columns | Hint “Enter field 1”. |
-| `field2` | `HintField`, 18 columns | Hint “Enter field 2”. |
-| `group1` | `OptionGroup` | `"Choice A"` selected (`selectedIndex` 0). Choices are Choice A, Choice B. 2 columns. |
-| `group2` | `CheckGroup` | Neither box ticked. Choice C, Choice D. 2 columns. |
-| `group3` | `OptionGroup` | `"Choice F"` selected (`selectedIndex` 1). |
-| `field3` | ordinary `JTextField` | Text `"0"`. |
-| `group4` | `OptionGroup` | `"Choice 1"` selected. That choice is index 5 in the array, which is the last cell of the 3 by 2 grid. |
-| `group5` | `JComboBox` | `"Choice G"`. |
-| `field4` | `JComboBox` | `"Choice H"`. |
-| `field5` | `JComboBox` | `"Choice I"`. |
-| `field6` | `HintArea`, 4 rows, 20 columns | Hint “Enter field 6”. |
+| `field1` | `HintField`, 18 columns | Hint “Enter Engagement No”. Label Eng No. |
+| `field2` | `HintField`, 18 columns | Hint “Enter Engagement Name”. Label Engagement Name. |
+| `group1` | `OptionGroup` | `"Prosp Eng"` selected (`selectedIndex` 0). Choices are Prosp Eng, Real Engine. 2 columns. |
+| `group2` | `OptionGroup` | `"ETH WVR"` selected (`selectedIndex` 0). Choices are ETH WVR, ETH WEXE. 2 columns. |
+| `group3` | `OptionGroup` | `"No"` selected (`selectedIndex` 1). Choices are Yes, No. |
+| `field3` | ordinary `JTextField` | Text `"0"`. Label Torpedo Distance. |
+| `group4` | `OptionGroup` | `"Tube 1"` selected. That choice is index 5, the last cell of the 3 by 2 grid. |
+| `group5` | `JComboBox` | `"Default Sub Surface War"`, also `"Default Surface War"`. |
+| `field4` | `JComboBox` | `"Surface"`, also `"Sub Surface"`. Label Type. |
+| `field5` | `JComboBox` | `"Select Track"`, also `"Automatic"` and `"Manual"`. Label Track. |
+| `field6` | `HintArea`, 4 rows, 20 columns | Hint “Enter comments...”. |
 | `cancelButton` | `Mono.button("Cancel")` | No listener until the page adds one. |
 | `okButton` | `Mono.accentButton("OK")` | No listener until the page adds one. |
 | `closeButton` | a `JButton` whose text is × (`\u00D7`) | Its listener is added in `titleBar` and calls `setVisible(false)` on this panel. |
-| `parameters` | `LinkedHashMap` | Filled by `namedField` for P1, P2, P3, P4, P5, P6, P7, P8, P9. |
+| `parameters` | `LinkedHashMap` | Filled by `namedField` for TB, RB, TP, Dp, Tpe, TCa, ATg, Long, Lat. |
 
 `build()` paints the panel, then adds three children: `titleBar()` at north, `scroller(form())` at center, `buttonBar()` at south.
 
 `form()` returns a `FormStack` with 12 pixels of padding on the left and right and on the bottom, and 4 on the top. Top to bottom the stack is:
 
-1. `FormRow` “Field 1 *” + `field1`.
+1. `FormRow` “Eng No” + `field1`.
 2. An 8-pixel vertical strut.
-3. `FormRow` “Field 2 *” + `field2`.
-4. Heading “Section 1”, then `section1Card()`.
-5. Heading “Section 2”, then `section2Card()`.
-6. Heading “Section 3”, then `section3Card()`.
-7. Heading “Section 4”, then `section4Card()`.
+3. `FormRow` “Engagement Name” + `field2`.
+4. Heading “ENGAGEMENT CONFIGURATION”, then `section1Card()`.
+5. Heading “TARGET PARAMETERS”, then `section2Card()`.
+6. Heading “TARGET SELECTION”, then `section3Card()`.
+7. Heading “COMMENTS”, then `section4Card()`.
 
-`section1Card()` is a `FormCard`. Inside it, a `GroupLabel` introduces each cluster, then the cluster itself: Group 1, Group 2, Group 3, the Field 3 line, Group 4, the Group 5 combo.
+`section1Card()` is a `FormCard`. Inside it, a `GroupLabel` introduces each cluster: Engagement State Selection, Weapon Select, Linked Launch, Torpedo Distance, Tube Select, Weapon Configuration Selection.
 
-The Field 3 line is a centred `FlowLayout` panel: the words “Field 3”, the text field, and a small OK from `Mono.button("OK")`. That small OK has no listener. Pressing it does not call `readForm()`.
+The Torpedo Distance line is a centred `FlowLayout` panel: the words “Torpedo Distance”, the text field, and a small OK from `Mono.button("OK")`. That small OK has no listener. Pressing it does not call `readForm()`.
 
-`section2Card()` is five pair-rows. Three of them are two named fields. The fourth is P7 on the left and the Field 4 combo on the right. The fifth pair is P8 and P9. The sample values are plain numbers such as `"0.00"`.
+`section2Card()` is five pair-rows. TB/RB, TP/Dp, and Tpe/TCa are two named fields. The fourth is ATg on the left and the Type combo on the right. The fifth pair is Long and Lat.
 
-`section3Card()` is one `FormRow`: “Field 5 *” and the Field 5 combo. `section4Card()` is the hint area inside a `Block` with 4 pixels of padding.
+`section3Card()` is one `FormRow`: “Track” and the Track combo. `section4Card()` is the hint area inside a `Block` with 4 pixels of padding.
 
 `buttonBar()` is a right-aligned flow with a one-pixel top rule. Cancel is added first, then the cyan OK, so OK is the rightmost control.
 
@@ -505,19 +515,19 @@ Each property is a private `String` that starts as `""`, with `getX()` and `setX
 
 | Property | Screen source |
 |---|---|
-| `field1` | Field 1, via `getValue()` |
-| `field2` | Field 2, via `getValue()` |
-| `group1` | Choice A or Choice B |
-| `group2` | Ticked choice names, joined by `", "` |
-| `group3` | Choice E or Choice F |
-| `field3` | The Field 3 text, including the starting `"0"` |
-| `group4` | Choice 1 … Choice 6 |
-| `group5` | The Group 5 combo |
-| `p1`, `p2`, `p3`, `p4`, `p5`, `p6`, `p7` | Those parameter fields |
-| `field4` | The Field 4 combo |
-| `p8`, `p9` | P8 and P9 |
-| `field5` | The Field 5 combo |
-| `field6` | The Section 4 area, via `getValue()` |
+| `field1` | Eng No, via `getValue()` |
+| `field2` | Engagement Name, via `getValue()` |
+| `group1` | Prosp Eng or Real Engine |
+| `group2` | ETH WVR or ETH WEXE |
+| `group3` | Yes or No |
+| `field3` | Torpedo Distance, including the starting `"0"` |
+| `group4` | Tube 1 … Tube 6 |
+| `group5` | Weapon Configuration Selection |
+| `p1`, `p2`, `p3`, `p4`, `p5`, `p6`, `p7` | TB, RB, TP, Dp, Tpe, TCa, ATg |
+| `field4` | Type |
+| `p8`, `p9` | Long and Lat |
+| `field5` | Track |
+| `field6` | Comments, via `getValue()` |
 
 The strings are the characters from the screen. `"305.00"` stays a string. Parsing to `double` belongs in the method that receives the object, after it has arrived.
 
@@ -626,17 +636,17 @@ card.addRow(group4);
 form.add(card);
 ```
 
-One card is one boxed group. Section 1, Section 2, Section 3, and Section 4 are four cards.
+One card is one boxed group. ENGAGEMENT CONFIGURATION, TARGET PARAMETERS, TARGET SELECTION, and COMMENTS are four cards.
 
 ### `page.form.FormRow` — label on the left, control on the right
 
 `public class FormRow extends Block`
 
-`BorderLayout` with an 8-pixel horizontal gap. The label’s preferred size is 168 by 24, so Field 1, Field 2, and Field 5 share a label column. The field goes in `CENTER` and receives the rest of the width.
+`BorderLayout` with an 8-pixel horizontal gap. The label’s preferred size is 168 by 24, so Eng No, Engagement Name, and Track share a label column. The field goes in `CENTER` and receives the rest of the width.
 
 The field argument is a `JComponent`, so it can be a `HintField`, a `JComboBox`, or a small panel.
 
-How you use it: `new FormRow("Field 1 *", field1)`. The star is part of the label string. The class does not treat `*` as special.
+How you use it: `new FormRow("Eng No", field1)`. A star in the label string is ordinary text. The class does not treat `*` as special.
 
 ### `page.form.Heading` — a cyan section title
 
@@ -679,7 +689,7 @@ OptionGroup state = new OptionGroup(new String[] {"Choice A", "Choice B"}, 0, 2)
 String chosen = state.getSelected();
 ```
 
-Index `0` is the first label. The current form uses index `0` for Choice A, index `1` for Choice F, and index `5` for Choice 1.
+Index `0` is the first label. The current form uses index `0` for Prosp Eng, index `1` for No, and index `5` for Tube 1.
 
 ### `page.form.CheckGroup` — ticks that do not exclude each other
 
@@ -691,7 +701,7 @@ new CheckGroup(labels, columns)
 
 The grid math matches `OptionGroup`. There is no `ButtonGroup`. Each box toggles alone. Nothing starts selected, because the constructor never calls `setSelected(true)`.
 
-`getSelected()` walks the boxes. For each selected box it appends `getText()`. The separator between two labels is `", "`. No selection returns `""`. Both Group 2 boxes return `"Choice C, Choice D"`. The buffer is a `StringBuffer`.
+`getSelected()` walks the boxes. For each selected box it appends `getText()`. The separator between two labels is `", "`. No selection returns `""`. Two ticked boxes return both labels joined by `", "`. The buffer is a `StringBuffer`. Create Engagement does not use this class. Weapon Select is an `OptionGroup`.
 
 How you use it:
 
@@ -714,7 +724,7 @@ On `focusGained`, if the hint is showing, the field clears, the foreground becom
 
 On `focusLost`, if `getText().trim()` has length 0, the hint comes back. Spaces alone count as empty because of `trim()`.
 
-`getValue()` returns `""` while the hint is showing, and `getText()` otherwise. `readForm` uses `getValue()` for Field 1, Field 2, and Field 6. Calling `getText()` while the hint is up would hand the sentence “Enter field 1” to the backend.
+`getValue()` returns `""` while the hint is showing, and `getText()` otherwise. `readForm` uses `getValue()` for Eng No, Engagement Name, and Comments. Calling `getText()` while the hint is up would hand the sentence “Enter Engagement No” to the backend.
 
 The columns argument is still the `JTextField` preferred width. 18 does not cap the length.
 
@@ -729,7 +739,7 @@ String number = field1.getValue();
 
 `public class HintArea extends JTextArea`
 
-Same `showingHint` rule as `HintField`. The constructor also turns on line wrap and word wrap. `getValue()` is the method to read. The Section 4 card uses `new HintArea("Enter field 6", 4, 20)`.
+Same `showingHint` rule as `HintField`. The constructor also turns on line wrap and word wrap. `getValue()` is the method to read. The COMMENTS card uses `new HintArea("Enter comments...", 4, 20)`.
 
 Focus behaviour matches the field: click in, the hint clears; leave it empty, the hint returns; `getValue()` is `""` whenever the hint is visible.
 
@@ -912,7 +922,7 @@ stack.add(card);
 
 **Read a hint field.** Call `getValue()`. An empty return means the user left the hint in place, or cleared the field and left it.
 
-**Read a parameter you registered with `namedField`.** Call `getParameter("P1")` with the same spelling and the same capitals.
+**Read a parameter you registered with `namedField`.** Call `getParameter("TB")` with the same spelling and the same capitals.
 
 **Open and close a section.** `new SectionPanel("Title")`, `addContent` for each row, `setOpen(false)` to start closed.
 

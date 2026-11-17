@@ -1,7 +1,9 @@
 package page;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,10 +18,14 @@ import javax.swing.UIManager;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
+import page.backend.EngagementService;
+import page.model.Engagement;
+
 
 /**
  * The screen. One listener handles every footer button.
- * The window opens on Engagement Parameters. F1 calls create().
+ * The window opens with Engagement Parameters in the lower-right form slot.
+ * F1 calls create() and puts the Create Engagement form in that same slot.
  * F4 swaps the footer to a second set of buttons.
  * A second F4 restores the first set. The other methods are empty
  * on purpose: fill those in with the functions from the real project.
@@ -48,8 +54,15 @@ public class FunctionPage extends JFrame {
         "Alt 7", "Alt 8", "Alt 9", "Alt 10", "Alt 11", "Alt 12"
     };
 
+    private static final Color BLUE = new Color(46, 134, 222);
+    private static final Color DARK = new Color(28, 28, 30);
+    private static final int FORM_WIDTH = 640;
+
     private final JLabel resultLabel = new JLabel(" ");
+    private final CardLayout formCards = new CardLayout();
+    private final JPanel formSlot = new JPanel(formCards);
     private EngagementParametersPanel parameters;
+    private WeaponConfigurationPanel form;
     private FunctionKeyBar footer;
     private boolean secondSet;
 
@@ -114,14 +127,28 @@ public class FunctionPage extends JFrame {
     public FunctionPage() {
         super("Java UI");
 
-        JPanel page = new JPanel(new BorderLayout());
-        page.setBackground(new Color(168, 214, 245));
+        JPanel page = new JPanel(new BorderLayout(0, 4));
+        page.setBackground(DARK);
+
+        JPanel topBar = new JPanel();
+        topBar.setBackground(BLUE);
+        topBar.setPreferredSize(new Dimension(100, 36));
 
         JPanel blue = new JPanel(new BorderLayout());
-        blue.setBackground(new Color(168, 214, 245));
+        blue.setBackground(BLUE);
+        blue.setPreferredSize(new Dimension(100, 190));
         resultLabel.setFont(new Font("Dialog", Font.PLAIN, 16));
+        resultLabel.setForeground(Color.WHITE);
         resultLabel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         blue.add(resultLabel, BorderLayout.NORTH);
+
+        JPanel dark = new JPanel();
+        dark.setBackground(DARK);
+
+        JPanel left = new JPanel(new BorderLayout(0, 4));
+        left.setOpaque(false);
+        left.add(dark, BorderLayout.CENTER);
+        left.add(blue, BorderLayout.SOUTH);
 
         LookAndFeel previous = UIManager.getLookAndFeel();
         try {
@@ -131,14 +158,47 @@ public class FunctionPage extends JFrame {
             /* Keep the look that is already installed. */
         }
         parameters = new EngagementParametersPanel();
+        form = new WeaponConfigurationPanel();
         try {
             UIManager.setLookAndFeel(previous);
         } catch (Exception ex) {
-            /* Leave the look the form was built with. */
+            /* Leave the look the forms were built with. */
         }
+        final EngagementService backend = new EngagementService();
+        form.getOkButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                Engagement engagement = form.readForm();
+                backend.create(engagement);
+                resultLabel.setText("Saved " + engagement.getField1()
+                        + " / " + engagement.getGroup1());
+            }
+        });
+        form.getCancelButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Cancel");
+            }
+        });
 
-        page.add(blue, BorderLayout.NORTH);
-        page.add(parameters, BorderLayout.CENTER);
+        formSlot.setBackground(DARK);
+        formSlot.setPreferredSize(new Dimension(FORM_WIDTH, 400));
+        formSlot.add(parameters, "parameters");
+        formSlot.add(form, "create");
+        formCards.show(formSlot, "parameters");
+
+        JPanel right = new JPanel(new BorderLayout(0, 4));
+        right.setOpaque(false);
+        right.setPreferredSize(new Dimension(FORM_WIDTH, 100));
+        right.add(new MotionReadout(), BorderLayout.NORTH);
+        right.add(formSlot, BorderLayout.CENTER);
+
+        JPanel stage = new JPanel(new BorderLayout(4, 0));
+        stage.setBackground(DARK);
+        stage.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        stage.add(left, BorderLayout.CENTER);
+        stage.add(right, BorderLayout.EAST);
+
+        page.add(topBar, BorderLayout.NORTH);
+        page.add(stage, BorderLayout.CENTER);
 
         /* bar height, button width, button height — change these to fit the other screen */
         footer = new FunctionKeyBar(64, 96, 40, functionListener);
@@ -151,12 +211,10 @@ public class FunctionPage extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    /** F1. The engagement screen is already open. This reports the four drop-downs. */
+    /** F1. Puts the Create Engagement form in the lower-right slot. */
     private void create() {
-        resultLabel.setText(parameters.getAcousticHeadMode()
-                + " / " + parameters.getAttackMode()
-                + " / " + parameters.getWakeSensor()
-                + " / " + parameters.getGuidanceMode());
+        formCards.show(formSlot, "create");
+        resultLabel.setText("Create engagement");
     }
 
     /** F2. */

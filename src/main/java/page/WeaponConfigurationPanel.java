@@ -22,7 +22,6 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
 import page.form.Block;
-import page.form.CheckGroup;
 import page.form.FormCard;
 import page.form.FormRow;
 import page.form.FormStack;
@@ -47,7 +46,7 @@ public class WeaponConfigurationPanel extends JPanel {
     private final HintField field1;
     private final HintField field2;
     private final OptionGroup group1;
-    private final CheckGroup group2;
+    private final OptionGroup group2;
     private final OptionGroup group3;
     private final JTextField field3;
     private final OptionGroup group4;
@@ -69,21 +68,21 @@ public class WeaponConfigurationPanel extends JPanel {
         } catch (Exception ex) {
             /* Keep the look that is already installed. */
         }
-        field1 = new HintField("Enter field 1", 18);
-        field2 = new HintField("Enter field 2", 18);
-        group1 = new OptionGroup(new String[] {"Choice A", "Choice B"}, 0, 2);
-        group2 = new CheckGroup(new String[] {"Choice C", "Choice D"}, 2);
-        group3 = new OptionGroup(new String[] {"Choice E", "Choice F"}, 1, 2);
+        field1 = new HintField("Enter Engagement No", 18);
+        field2 = new HintField("Enter Engagement Name", 18);
+        group1 = new OptionGroup(new String[] {"Prosp Eng", "Real Engine"}, 0, 2);
+        group2 = new OptionGroup(new String[] {"ETH WVR", "ETH WEXE"}, 0, 2);
+        group3 = new OptionGroup(new String[] {"Yes", "No"}, 1, 2);
         field3 = Mono.field(10);
         field3.setText("0");
         group4 = new OptionGroup(
-                new String[] {"Choice 6", "Choice 5", "Choice 4", "Choice 3", "Choice 2", "Choice 1"},
+                new String[] {"Tube 6", "Tube 5", "Tube 4", "Tube 3", "Tube 2", "Tube 1"},
                 5,
                 2);
-        group5 = Mono.combo(new String[] {"Choice G"});
-        field4 = Mono.combo(new String[] {"Choice H"});
-        field5 = Mono.combo(new String[] {"Choice I"});
-        field6 = new HintArea("Enter field 6", 4, 20);
+        group5 = Mono.combo(new String[] {"Default Sub Surface War", "Default Surface War"});
+        field4 = Mono.combo(new String[] {"Surface", "Sub Surface"});
+        field5 = Mono.combo(new String[] {"Select Track", "Automatic", "Manual"});
+        field6 = new HintArea("Enter comments...", 4, 20);
         cancelButton = Mono.button("Cancel");
         okButton = Mono.accentButton("OK");
         closeButton = closeControl();
@@ -110,7 +109,7 @@ public class WeaponConfigurationPanel extends JPanel {
         Mono.paint(bar);
         bar.setBorder(BorderFactory.createEmptyBorder(8, 12, 4, 8));
 
-        JLabel title = new JLabel("Create Engagement");
+        JLabel title = new JLabel("CREATE ENGAGEMENT");
         title.setForeground(Mono.FOREGROUND);
         title.setFont(Mono.TITLE_FONT);
         bar.add(title, BorderLayout.WEST);
@@ -128,32 +127,32 @@ public class WeaponConfigurationPanel extends JPanel {
         FormStack form = new FormStack();
         form.setBorder(BorderFactory.createEmptyBorder(4, 12, 12, 12));
 
-        form.add(new FormRow("Field 1 *", field1));
+        form.add(new FormRow("Eng No", field1));
         form.add(Box.createVerticalStrut(8));
-        form.add(new FormRow("Field 2 *", field2));
-        form.add(new Heading("Section 1"));
+        form.add(new FormRow("Engagement Name", field2));
+        form.add(new Heading("ENGAGEMENT CONFIGURATION"));
         form.add(section1Card());
-        form.add(new Heading("Section 2"));
+        form.add(new Heading("TARGET PARAMETERS"));
         form.add(section2Card());
-        form.add(new Heading("Section 3"));
+        form.add(new Heading("TARGET SELECTION"));
         form.add(section3Card());
-        form.add(new Heading("Section 4"));
+        form.add(new Heading("COMMENTS"));
         form.add(section4Card());
         return form;
     }
 
     private FormCard section1Card() {
         FormCard card = new FormCard();
-        card.addRow(new GroupLabel("Group 1"));
+        card.addRow(new GroupLabel("Engagement State Selection"));
         card.addRow(group1);
-        card.addRow(new GroupLabel("Group 2"));
+        card.addRow(new GroupLabel("Weapon Select"));
         card.addRow(group2);
-        card.addRow(new GroupLabel("Group 3"));
+        card.addRow(new GroupLabel("Linked Launch"));
         card.addRow(group3);
         card.addRow(field3Row());
-        card.addRow(new GroupLabel("Group 4"));
+        card.addRow(new GroupLabel("Tube Select"));
         card.addRow(group4);
-        card.addRow(new GroupLabel("Group 5"));
+        card.addRow(new GroupLabel("Weapon Configuration Selection"));
         card.addRow(row(group5));
         return card;
     }
@@ -161,7 +160,7 @@ public class WeaponConfigurationPanel extends JPanel {
     private Block field3Row() {
         JPanel line = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 4));
         Mono.paint(line);
-        JLabel label = new JLabel("Field 3");
+        JLabel label = new JLabel("Torpedo Distance");
         Mono.paint(label);
         JButton smallOk = Mono.button("OK");
         line.add(label);
@@ -172,17 +171,17 @@ public class WeaponConfigurationPanel extends JPanel {
 
     private FormCard section2Card() {
         FormCard card = new FormCard();
-        card.addRow(parameterPair("P1", "305.00", "P2", "305.00"));
-        card.addRow(parameterPair("P3", "2.87", "P4", "0.00"));
-        card.addRow(parameterPair("P5", "5.00", "P6", "125.00"));
-        card.addRow(parameterPair("P7", "0.00", field4Row()));
-        card.addRow(parameterPair("P8", "0.00", "P9", "0.00"));
+        card.addRow(parameterPair("TB", "305.00", "RB", "305.00"));
+        card.addRow(parameterPair("TP", "2.87", "Dp", "0.00"));
+        card.addRow(parameterPair("Tpe", "5.00", "TCa", "125.00"));
+        card.addRow(parameterPair("ATg", "0.00", field4Row()));
+        card.addRow(parameterPair("Long", "80\u00B0 07' 48\"", "Lat", "00\u00B0 01' 46\" N"));
         return card;
     }
 
     private FormCard section3Card() {
         FormCard card = new FormCard();
-        card.addRow(new FormRow("Field 5 *", field5));
+        card.addRow(new FormRow("Track", field5));
         return card;
     }
 
@@ -250,7 +249,7 @@ public class WeaponConfigurationPanel extends JPanel {
         Mono.paint(line);
         JLabel label = new JLabel(name);
         Mono.paint(label);
-        label.setPreferredSize(new Dimension(44, 24));
+        label.setPreferredSize(new Dimension(48, 24));
         JTextField field = Mono.field(8);
         field.setText(value);
         parameters.put(name, field);
@@ -262,9 +261,9 @@ public class WeaponConfigurationPanel extends JPanel {
     private JPanel field4Row() {
         JPanel line = new JPanel(new BorderLayout(8, 0));
         Mono.paint(line);
-        JLabel label = new JLabel("Field 4");
+        JLabel label = new JLabel("Type");
         Mono.paint(label);
-        label.setPreferredSize(new Dimension(44, 24));
+        label.setPreferredSize(new Dimension(48, 24));
         line.add(label, BorderLayout.WEST);
         line.add(field4, BorderLayout.CENTER);
         return line;
@@ -342,16 +341,16 @@ public class WeaponConfigurationPanel extends JPanel {
         engagement.setField3(field3.getText());
         engagement.setGroup4(group4.getSelected());
         engagement.setGroup5(selected(group5));
-        engagement.setP1(getParameter("P1"));
-        engagement.setP2(getParameter("P2"));
-        engagement.setP3(getParameter("P3"));
-        engagement.setP4(getParameter("P4"));
-        engagement.setP5(getParameter("P5"));
-        engagement.setP6(getParameter("P6"));
-        engagement.setP7(getParameter("P7"));
+        engagement.setP1(getParameter("TB"));
+        engagement.setP2(getParameter("RB"));
+        engagement.setP3(getParameter("TP"));
+        engagement.setP4(getParameter("Dp"));
+        engagement.setP5(getParameter("Tpe"));
+        engagement.setP6(getParameter("TCa"));
+        engagement.setP7(getParameter("ATg"));
         engagement.setField4(selected(field4));
-        engagement.setP8(getParameter("P8"));
-        engagement.setP9(getParameter("P9"));
+        engagement.setP8(getParameter("Long"));
+        engagement.setP9(getParameter("Lat"));
         engagement.setField5(selected(field5));
         engagement.setField6(field6.getValue());
         return engagement;
