@@ -57,6 +57,7 @@ public class WeaponConfigurationPanel extends JPanel {
     private final JButton cancelButton;
     private final JButton okButton;
     private final JButton closeButton;
+    private JScrollPane formScroll;
     private final Map<String, JTextField> parameters = new LinkedHashMap<String, JTextField>();
 
     public WeaponConfigurationPanel() {
@@ -100,7 +101,8 @@ public class WeaponConfigurationPanel extends JPanel {
     private void build() {
         Mono.paint(this);
         add(titleBar(), BorderLayout.NORTH);
-        add(scroller(form()), BorderLayout.CENTER);
+        formScroll = scroller(form());
+        add(formScroll, BorderLayout.CENTER);
         add(buttonBar(), BorderLayout.SOUTH);
     }
 
@@ -325,6 +327,76 @@ public class WeaponConfigurationPanel extends JPanel {
             return "";
         }
         return field.getText();
+    }
+
+    private void setParameter(String name, String value) {
+        JTextField field = parameters.get(name);
+        if (field != null) {
+            field.setText(value == null ? "" : value);
+        }
+    }
+
+    private void selectItem(JComboBox box, String value) {
+        if (value == null) {
+            return;
+        }
+        box.setSelectedItem(value);
+    }
+
+    /** Put the form back to the Create Engagement starting values. */
+    public void resetForCreate() {
+        field1.setValue("");
+        field2.setValue("");
+        group1.setSelected("Prosp Eng");
+        group2.setSelected("ETH WVR");
+        group3.setSelected("No");
+        field3.setText("0");
+        group4.setSelected("Tube 1");
+        selectItem(group5, "Default Sub Surface War");
+        setParameter("TB", "305.00");
+        setParameter("RB", "305.00");
+        setParameter("TP", "2.87");
+        setParameter("Dp", "0.00");
+        setParameter("Tpe", "5.00");
+        setParameter("TCa", "125.00");
+        setParameter("ATg", "0.00");
+        selectItem(field4, "Surface");
+        setParameter("Long", "80\u00B0 07' 48\"");
+        setParameter("Lat", "00\u00B0 01' 46\" N");
+        selectItem(field5, "Select Track");
+        field6.setValue("");
+        scrollToTop();
+    }
+
+    /** Fill every control from a saved engagement. The layout stays the create form. */
+    public void apply(Engagement engagement) {
+        field1.setValue(engagement.getField1());
+        field2.setValue(engagement.getField2());
+        group1.setSelected(engagement.getGroup1());
+        group2.setSelected(engagement.getGroup2());
+        group3.setSelected(engagement.getGroup3());
+        field3.setText(engagement.getField3());
+        group4.setSelected(engagement.getGroup4());
+        selectItem(group5, engagement.getGroup5());
+        setParameter("TB", engagement.getP1());
+        setParameter("RB", engagement.getP2());
+        setParameter("TP", engagement.getP3());
+        setParameter("Dp", engagement.getP4());
+        setParameter("Tpe", engagement.getP5());
+        setParameter("TCa", engagement.getP6());
+        setParameter("ATg", engagement.getP7());
+        selectItem(field4, engagement.getField4());
+        setParameter("Long", engagement.getP8());
+        setParameter("Lat", engagement.getP9());
+        selectItem(field5, engagement.getField5());
+        field6.setValue(engagement.getField6());
+        scrollToTop();
+    }
+
+    public void scrollToTop() {
+        if (formScroll != null) {
+            formScroll.getVerticalScrollBar().setValue(0);
+        }
     }
 
     /**

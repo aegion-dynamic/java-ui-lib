@@ -166,6 +166,8 @@ form.getOkButton().addActionListener(new ActionListener() {
 4. `create(engagement)` is the backend call. This is the line to point at the other project’s save method.
 5. The label on the blue page is only a check that the copy worked. It is not the backend. Delete that line when you connect a real save.
 
+F2 is Modify. It calls `apply` with `getLastCreated()`, so the same form shows the saved values. OK on that visit calls `update`, which stores the edited object in the same place. The next F2 reads that edit. F2 before any OK leaves the screen as it is.
+
 Cancel does not call `readForm()` and does not call `create()`.
 
 ---

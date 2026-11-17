@@ -375,9 +375,10 @@ One object of this class is the sample window. It owns the blue page, the form, 
 | `parameters` | Engagement Parameters. Visible in the lower-right slot when the window opens. |
 | `form` | Create Engagement. F1 puts this panel in that same slot. |
 | `formSlot` | The lower-right area. A `CardLayout` holds the two forms. |
-| `create()` | F1. Shows Create Engagement in the form slot. |
+| `create()` | F1. Shows a fresh Create Engagement form in the form slot. |
+| `onF2()` | Modify. Shows that same form filled from the last saved engagement. |
 | `onF4()` | Swaps the footer to the second set, or back to the first set. |
-| `onF2()` … `onF12()` | First-set operations, except F4. Each one writes its key name on the label. |
+| `onF3()`, `onF5()` … `onF12()` | First-set operations that still write their key name on the label. |
 | `onB1()` … `onB12()` | Second-set operations. There is no `onB4`. Slot 4 is F4 in both sets. |
 | `main` | Sends window creation to the event thread and shows the frame. |
 
@@ -835,7 +836,7 @@ User presses F4
     setLabels writes Alt 1… beside the blue squares
     the F1 key now sends "B1"
   F4 again
-    setLabels writes Create, Op 2, … beside the same squares
+    setLabels writes Create, Modify, … beside the same squares
 ```
 
 `OptionGroup.getSelected` reads `JRadioButton.isSelected` and `getText`. `CheckGroup.getSelected` does the same with `JCheckBox`. `HintField.getValue` reads the `showingHint` flag before it trusts `getText`. `getParameter` reads the map, then `JTextField.getText`. `selected` reads `JComboBox.getSelectedItem`. `readForm` is the only method that performs all of those reads in one place.

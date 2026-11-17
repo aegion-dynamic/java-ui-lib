@@ -46,6 +46,17 @@ public class HintArea extends JTextArea {
         return getText();
     }
 
+    /** Show a saved value. An empty value puts the hint back. */
+    public void setValue(String value) {
+        if (value == null || value.trim().length() == 0) {
+            showHint();
+            return;
+        }
+        showingHint = false;
+        setText(value);
+        setForeground(Mono.FIELD_TEXT);
+    }
+
     private void showHint() {
         showingHint = true;
         setText(hint);

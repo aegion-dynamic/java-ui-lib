@@ -197,7 +197,7 @@ add(row, BorderLayout.SOUTH);
 setLabels(KEYS, KEYS);
 ```
 
-Puts the finished row on the bottom of the footer. The constructor’s `setLabels` uses the key names as placeholder words. `FunctionPage` immediately replaces those words with `FIRST_TEXT` (`Create`, `Op 2`, `Swap`, and the rest).
+Puts the finished row on the bottom of the footer. The constructor’s `setLabels` uses the key names as placeholder words. `FunctionPage` immediately replaces those words with `FIRST_TEXT` (`Create`, `Modify`, `Swap`, and the rest).
 
 ### The three size methods
 
@@ -282,7 +282,7 @@ Both arrays must have twelve strings, in slot order. Slot 0 is the left button a
 | Press | Blue square | Words | Command |
 |---|---|---|---|
 | First F4 | still `F1` … `F12` | `Alt 1` … `Swap` … `Alt 12` | `B1` … `F4` … `B12` |
-| F4 again | still `F1` … `F12` | `Create`, `Op 2`, `Swap`, … | `F1` … `F4` … `F12` |
+| F4 again | still `F1` … `F12` | `Create`, `Modify`, `Swap`, … | `F1` … `F4` … `F12` |
 
 The fourth command stays `"F4"` in both arrays. That is why the second press still arrives as `"F4"` and can switch back. The fourth word stays `Swap`. The other eleven words change, and each new command is a different method: `onB1`, `onB2`, and so on.
 
@@ -400,15 +400,11 @@ The constructor builds the window. It does not show it. `setVisible(true)` in `m
 
 ### `create()` and `onF2()` … `onF12()`
 
-```java
-private void create() {
-    resultLabel.setText("F1 called create()");
-}
-```
+`create()` is F1. It clears the form back to the Create Engagement starting values and shows it in the lower-right slot.
 
-F1 is the only key with a real name in this sample, because that is the function you asked for. The body is a stand-in. In the other project, replace the `setText` line with the call that already exists there, for example the method that opens the create form.
+`onF2()` is Modify. It reads the last engagement passed to `create` or `update`. The same form appears, with those values in the fields, so they can be changed. OK then calls `update`. If nothing has been saved yet, the blue block says to create an engagement first and the form stays as it is.
 
-`onF2` through `onF12` are the same shape, except `onF4`. They exist so each key already has a method to fill in. `private` means only this screen calls them. The listener is the only caller.
+`onF3` and `onF5` through `onF12` still write their key name. They exist so each key already has a method to fill in. `private` means only this screen calls them. The listener is the only caller.
 
 `onF10`, `onF11`, and `onF12` match the buttons labelled F10, F11, and F12, and the physical keys of the same name, while the first set is showing.
 
@@ -427,7 +423,7 @@ private void onF4() {
 }
 ```
 
-`secondSet` starts false. The first F4 makes it true and replaces the words with `Alt 1`, `Alt 2`, and the rest. The blue squares stay `F1` through `F12`, and the buttons stay black. The next F4 restores `Create`, `Op 2`, and the rest. Each later F4 flips the words again.
+`secondSet` starts false. The first F4 makes it true and replaces the words with `Alt 1`, `Alt 2`, and the rest. The blue squares stay `F1` through `F12`, and the buttons stay black. The next F4 restores `Create`, `Modify`, and the rest. Each later F4 flips the words again.
 
 `SECOND_KEYS` is the twelve commands of the second set, not the words on the buttons. Index 3 is `"F4"`. The other indexes are `"B1"`, `"B2"`, `"B3"`, `"B5"`, and on through `"B12"`. There is no `"B4"`. That slot is the swap in both sets. `SECOND_TEXT` is the words: `Alt 1` beside the F1 square, `Swap` beside the F4 square, and so on.
 
@@ -565,7 +561,9 @@ $JAVA6_HOME/bin/java -jar target/java-ui-1.0.jar
 
 When the window opens, Engagement Parameters is in the lower-right slot. The rest of the window is the blue bar on top, the dark area on the left, the blue block under that, and the function keys. Acoustic head mode, Attack mode, Wake Sensor, and Guidance Mode are drop-downs. Their lists are Passive / Simultaneous / Wake, Sub Surface / Surface, OFF / ON, and Bg Rider Out / CCM / TCCM.
 
-Click **F1** or press the F1 key. Create Engagement replaces Engagement Parameters in that same slot. The other regions stay. The bottom **OK** on Create Engagement copies every field into an `Engagement`. How that hand-off works is in `Create Engagement - how values reach the backend.md`. The other buttons report their own names.
+Click **F1** or press the F1 key. Create Engagement replaces Engagement Parameters in that same slot. The other regions stay. The bottom **OK** copies every field into an `Engagement`. How that hand-off works is in `Create Engagement - how values reach the backend.md`.
+
+Click **F2** or press the F2 key after that OK. The same form comes back, filled with the values just saved. Change any field and press OK to store the edit. F2 before any save leaves the current page in place.
 
 ---
 

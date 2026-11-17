@@ -25,7 +25,8 @@ import page.model.Engagement;
 /**
  * The screen. One listener handles every footer button.
  * The window opens with Engagement Parameters in the lower-right form slot.
- * F1 calls create() and puts the Create Engagement form in that same slot.
+ * F1 calls create() and puts a blank Create Engagement form in that same slot.
+ * F2 calls onF2() and shows that same form filled from the last save.
  * F4 swaps the footer to a second set of buttons.
  * A second F4 restores the first set. The other methods are empty
  * on purpose: fill those in with the functions from the real project.
@@ -44,7 +45,7 @@ public class FunctionPage extends JFrame {
 
     /** Words beside the blue F1–F12 squares on the first set. */
     private static final String[] FIRST_TEXT = {
-        "Create", "Op 2", "Op 3", "Swap", "Op 5", "Op 6",
+        "Create", "Modify", "Op 3", "Swap", "Op 5", "Op 6",
         "Op 7", "Op 8", "Op 9", "Op 10", "Op 11", "Op 12"
     };
 
@@ -63,8 +64,10 @@ public class FunctionPage extends JFrame {
     private final JPanel formSlot = new JPanel(formCards);
     private EngagementParametersPanel parameters;
     private WeaponConfigurationPanel form;
+    private EngagementService backend;
     private FunctionKeyBar footer;
     private boolean secondSet;
+    private boolean modifying;
 
     /**
      * One listener for every function button.
@@ -164,13 +167,19 @@ public class FunctionPage extends JFrame {
         } catch (Exception ex) {
             /* Leave the look the forms were built with. */
         }
-        final EngagementService backend = new EngagementService();
+        backend = new EngagementService();
         form.getOkButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 Engagement engagement = form.readForm();
-                backend.create(engagement);
-                resultLabel.setText("Saved " + engagement.getField1()
-                        + " / " + engagement.getGroup1());
+                if (modifying) {
+                    backend.update(engagement);
+                    resultLabel.setText("Modified " + engagement.getField1()
+                            + " / " + engagement.getGroup1());
+                } else {
+                    backend.create(engagement);
+                    resultLabel.setText("Saved " + engagement.getField1()
+                            + " / " + engagement.getGroup1());
+                }
             }
         });
         form.getCancelButton().addActionListener(new ActionListener() {
@@ -211,15 +220,25 @@ public class FunctionPage extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    /** F1. Puts the Create Engagement form in the lower-right slot. */
+    /** F1. Puts a fresh Create Engagement form in the lower-right slot. */
     private void create() {
+        modifying = false;
+        form.resetForCreate();
         formCards.show(formSlot, "create");
         resultLabel.setText("Create engagement");
     }
 
-    /** F2. */
+    /** F2. Same form as create, filled with the engagement that was saved. */
     private void onF2() {
-        resultLabel.setText("F2");
+        Engagement saved = backend.getLastCreated();
+        if (saved == null) {
+            resultLabel.setText("Create an engagement first");
+            return;
+        }
+        modifying = true;
+        form.apply(saved);
+        formCards.show(formSlot, "create");
+        resultLabel.setText("Modify engagement");
     }
 
     /** F3. */

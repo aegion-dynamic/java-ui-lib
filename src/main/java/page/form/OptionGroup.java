@@ -40,6 +40,13 @@ public class OptionGroup extends Block {
         }
     }
 
+    /** Select the choice whose label matches text. No match clears the group. */
+    public void setSelected(String text) {
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setSelected(text != null && text.equals(buttons[i].getText()));
+        }
+    }
+
     /** The text of the selected choice, or an empty string when none is selected. */
     public String getSelected() {
         for (int i = 0; i < buttons.length; i++) {

@@ -15,6 +15,11 @@ public class EngagementService {
         lastCreated = engagement;
     }
 
+    /** Replace the stored engagement with the values from Modify. */
+    public void update(Engagement engagement) {
+        lastCreated = engagement;
+    }
+
     public Engagement getLastCreated() {
         return lastCreated;
     }
