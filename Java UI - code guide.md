@@ -8,8 +8,11 @@ This project is a practice screen you can copy into a larger Java 1.6 program.
 | `src/main/java/page/FunctionPage.java` | The window. Owns the one listener and the functions (`create()` and the rest). |
 | `src/main/java/page/MotionReadout.java` | The strip above the form. COG, then SOG in Kt and DSM in m. |
 | `src/main/java/page/EngagementParametersPanel.java` | Engagement Parameters. Shown in the lower-right slot when the window opens. |
-| `src/main/java/page/WeaponConfigurationPanel.java` | The Create Engagement form. F1 puts it in that same lower-right slot. |
+| `src/main/java/page/CreateEngagementPanel.java` | Create Engagement. F1 opens it empty. OK stores it and returns to Engagement Parameters. |
+| `src/main/java/page/ModifyEngagementPanel.java` | Modify Engagement. F2 opens it. The name drop-down chooses which stored engagement to load. |
+| `src/main/java/page/DeleteEngagementPanel.java` | Delete Engagement. F3 opens it. Eng No is the number list. |
 | `src/main/java/page/CreateWeaponConfigPanel.java` | Create Weapon Configuration. The first key after F4 opens it. |
+| `src/main/java/page/ModifyWeaponConfigPanel.java` | Modify Weapon Configuration. The second key after F4 opens it. Config name chooses which one to load. |
 | `src/main/java/page/SavedWeaponConfigPanel.java` | Stage 6. OK on Create Weapon Configuration shows it. |
 | `src/main/java/page/form/` | The reusable rows, sections, and option groups. |
 | `pom.xml` | Tells Maven to compile this as Java 1.6 and which class to start. |
@@ -563,17 +566,21 @@ $JAVA6_HOME/bin/java -jar target/java-ui-1.0.jar
 
 When the window opens, Engagement Parameters is in the lower-right slot. The rest of the window is the blue bar on top, the dark area on the left, the blue block under that, and the function keys. Acoustic head mode, Attack mode, Wake Sensor, and Guidance Mode are drop-downs. Their lists are Passive / Simultaneous / Wake, Sub Surface / Surface, OFF / ON, and Bg Rider Out / CCM / TCCM.
 
-Click **F1** or press the F1 key. Create Engagement replaces Engagement Parameters in that same slot. The other regions stay. The bottom **OK** copies every field into an `Engagement`. How that hand-off works is in `Create Engagement - how values reach the backend.md`.
+Click **F1** or press the F1 key. Create Engagement replaces Engagement Parameters in that same slot. The bottom **OK** copies every field into an `Engagement` and the parameters screen comes back. How that hand-off works is in `Create Engagement - how values reach the backend.md`.
 
-Click **F2** or press the F2 key after that OK. The same form comes back, filled with the values just saved. Change any field and press OK to store the edit. F2 before any save leaves the current page in place.
+Click **F2**. Modify Engagement opens, with the header MODIFY ENGAGEMENT. Engagement Name is a drop-down of the names saved so far. Choose a name and that engagement fills the form. OK stores the edit and the parameters screen comes back. F2 before any save leaves the current page in place.
 
-Press **F4**, then the first key. The blue square still says F1 and the word beside it is WConfig. Create Weapon Configuration opens. OK on that form opens stage 6, with the values just entered. How to put those two screens on the other system is in `Weapon configuration - how to add it.md`.
+Click **F3**. Delete Engagement opens. Eng No is a drop-down of 1, 2, and 3. Eng Name is a text field. OK and Cancel both return to Engagement Parameters. How a listener fills that list from real data is in `Listeners and data.md`.
+
+Press **F4**, then the first key. The blue square still says F1 and the word beside it is WConfig. Create Weapon Configuration opens. Type a config name and press OK. Stage 6 opens with those values.
+
+Press **F4**, then the second key. The word beside F2 is Modify. Modify Weapon Configuration opens. Config name is a drop-down of the names just saved. Choose one and that configuration fills the form. OK stores the edit and opens stage 6. How to put these screens on the other system is in `Weapon configuration - how to add it.md`.
 
 ---
 
 ## 7. The form on the right
 
-The form is not one long class full of layout code. It is a screen assembled from small pieces. The pieces live in `src/main/java/page/form/`. The screen that uses them is `WeaponConfigurationPanel.java`.
+The form is not one long class full of layout code. It is a screen assembled from small pieces. The pieces live in `src/main/java/page/form/`. The screen that uses them is `CreateEngagementPanel.java`.
 
 ```text
 FunctionPage
@@ -591,13 +598,13 @@ FunctionPage
                 Create Engagement after F1
 ```
 
-To make a similar screen, copy `WeaponConfigurationPanel`, change the title, and add your own rows and sections. You do not copy layout code into `FunctionPage`.
+To make a similar screen, copy `CreateEngagementPanel`, change the title, and add your own rows and sections. You do not copy layout code into `FunctionPage`.
 
 ### Where it is attached
 
 In `FunctionPage` the window has two regions above the footer:
 
-The lower-right slot is a `CardLayout`. It shows `EngagementParametersPanel` at open. `create()` (F1) shows `WeaponConfigurationPanel` in that same slot. The footer stays `SOUTH`.
+The lower-right slot is a `CardLayout`. It shows `EngagementParametersPanel` at open. `create()` (F1) shows `CreateEngagementPanel` in that same slot. The footer stays `SOUTH`.
 
 ### `Mono` — the shared look
 
@@ -628,7 +635,7 @@ The lower-right slot is a `CardLayout`. It shows `EngagementParametersPanel` at 
 * `getScrollableTracksViewportWidth` returns `true`, so the pile becomes as wide as the scroll pane. No sideways scrollbar.
 * `getScrollableTracksViewportHeight` returns `false`, so a tall pile scrolls up and down.
 
-`WeaponConfigurationPanel` puts the stack in a `JScrollPane` and forces its own width to 560 pixels. Change `PANEL_WIDTH` if the next screen needs to be wider or narrower.
+`CreateEngagementPanel` puts the stack in a `JScrollPane` and forces its own width to 560 pixels. Change `PANEL_WIDTH` if the next screen needs to be wider or narrower.
 
 ### `FormRow` — label plus anything
 
@@ -677,7 +684,7 @@ The header is a triangle and a title. A mouse click calls `setOpen`. Open shows 
 
 `SectionPanel`, the triangle that opens and closes, is still in `page/form` for a screen that needs it. Create Engagement does not use it.
 
-### `WeaponConfigurationPanel` — Create Engagement
+### `CreateEngagementPanel` — Create Engagement
 
 This class only chooses what the pieces say. The order in `form()` is the order on screen:
 
@@ -706,7 +713,7 @@ The constructor switches to the classic Metal look before it builds the controls
 
 ### A second screen, same pieces
 
-Copy `WeaponConfigurationPanel.java`, rename the class, and edit `build()`. A smaller example of the shape:
+Copy `CreateEngagementPanel.java`, rename the class, and edit `build()`. A smaller example of the shape:
 
 ```java
 FormStack form = new FormStack();

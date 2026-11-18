@@ -27,7 +27,7 @@ This project
     page.FunctionKeyBar                the F1–F12 footer
     page.MotionReadout                 COG, SOG, and DSM above the form
     page.EngagementParametersPanel     lower-right form when the window opens
-    page.WeaponConfigurationPanel      lower-right form after F1
+    page.CreateEngagementPanel      lower-right form after F1
     page.CreateWeaponConfigPanel      weapon form after F4, then the F1 key
     page.SavedWeaponConfigPanel        stage 6, after OK on that weapon form
     page.model.Engagement              the values after they leave the form
@@ -37,9 +37,9 @@ This project
 
 A **library** here is a package of classes that ship with the JDK. You import them. You do not copy them into the project.
 
-A **class** is the written description. `JPanel` is a class. `WeaponConfigurationPanel` is a class.
+A **class** is the written description. `JPanel` is a class. `CreateEngagementPanel` is a class.
 
-An **object** is one living instance. `new JPanel()` creates one panel object. `new WeaponConfigurationPanel()` creates one form object. Two `new JButton("OK")` calls create two button objects that share the `JButton` class and hold different text.
+An **object** is one living instance. `new JPanel()` creates one panel object. `new CreateEngagementPanel()` creates one form object. Two `new JButton("OK")` calls create two button objects that share the `JButton` class and hold different text.
 
 A **UI object** is an object the user can see or that decides where visible objects sit. `JPanel`, `JButton`, `JLabel`, `BorderLayout`, and `Color` are UI objects. `Engagement` is a plain object. It has no pixels.
 
@@ -62,7 +62,7 @@ A **UI object** is an object the user can see or that decides where visible obje
 | `static` | Belongs to the class, not to one object. `Mono.paint(...)` is static. You call it on `Mono`, not on a `new Mono()`. |
 | `final` on a class | No other class may extend it. `Mono` is final. |
 | `final` on a field | The variable is assigned once. |
-| `final` on a local | Required in Java 6 when an anonymous listener uses that local. `final WeaponConfigurationPanel form` is final for that reason. |
+| `final` on a local | Required in Java 6 when an anonymous listener uses that local. `final CreateEngagementPanel form` is final for that reason. |
 | Anonymous class | A class written inline at the `new`, with no name of its own. The OK listener is one. It can read fields of the outer class, and locals that are `final`. |
 
 `java.lang` is imported for you. `String`, `Object`, `Exception`, `Math`, and `Runnable` need no import line.
@@ -87,7 +87,7 @@ FunctionPage                         a JFrame, the operating-system window
    │     ├─ MotionReadout              COG, SOG (Kt), DSM (m)
    │     └─ form slot
    │        ├─ EngagementParametersPanel    at open
-   │        └─ WeaponConfigurationPanel     after F1
+   │        └─ CreateEngagementPanel     after F1
    └─ SOUTH  FunctionKeyBar          F1 through F12
       └─ SOUTH  row                  twelve black keys in one row
 ```
@@ -250,7 +250,7 @@ Swing components are lightweight. Java draws them inside the native window. The 
 | `DefaultListCellRenderer` | The default combo and list cell, which is a `JLabel`. | `Mono.combo` replaces the colours so the drop-down stays white with dark text. |
 | `Scrollable` | An interface, not a visible class. | `FormStack` implements it so the scroll pane knows to match the viewport width and to scroll vertically. |
 
-**`JPanel` in practice.** A panel is the board you pin other components to. It becomes useful when you give it a layout and `add` children. `FunctionKeyBar` is a panel, so the window can `add` it like any other panel. `WeaponConfigurationPanel` is a panel for the same reason. Prefer a subclass of `JPanel` when the rectangle has behaviour of its own (`readForm`, a key binding, a preferred size). Use a plain `new JPanel(layout)` when it only groups children, as the title bar and the button bar do.
+**`JPanel` in practice.** A panel is the board you pin other components to. It becomes useful when you give it a layout and `add` children. `FunctionKeyBar` is a panel, so the window can `add` it like any other panel. `CreateEngagementPanel` is a panel for the same reason. Prefer a subclass of `JPanel` when the rectangle has behaviour of its own (`readForm`, a key binding, a preferred size). Use a plain `new JPanel(layout)` when it only groups children, as the title bar and the button bar do.
 
 **`JFrame` in practice.**
 
@@ -311,7 +311,7 @@ A border is painted inside the component’s edges and insets the children. `Bor
 
 A look and feel is the code that paints a `JButton` as a Metal button, a GTK button, or a Windows button. `UIManager.getLookAndFeel()` returns the one installed now. On Ubuntu that is often the system GTK look.
 
-`WeaponConfigurationPanel` does this around construction:
+`CreateEngagementPanel` does this around construction:
 
 1. Remember the current look.
 2. `MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme())`.
@@ -386,7 +386,7 @@ One object of this class is the sample window. It owns the blue page, the form, 
 
 The OK listener is separate from `functionListener`. F1 does not press the form’s OK. The form’s OK does not call `create()`. They are two different buttons.
 
-How you use it in this sample: run `page.FunctionPage`. How you use the idea on an existing window: do not copy this class onto that window. Copy the listener pattern. Their window constructs a `WeaponConfigurationPanel`, `add`s it, and hangs a listener on `getOkButton()`.
+How you use it in this sample: run `page.FunctionPage`. How you use the idea on an existing window: do not copy this class onto that window. Copy the listener pattern. Their window constructs a `CreateEngagementPanel`, `add`s it, and hangs a listener on `getOkButton()`.
 
 `serialVersionUID = 1L` is on every Swing subclass here. Swing components implement `Serializable`. Java asks a serializable class for a version number when it writes the object to a byte stream. This program never saves a window to disk. The field is there so the class has an explicit version. Leave it as `1L`.
 
@@ -433,9 +433,9 @@ footer.setLabels(FunctionKeyBar.KEYS, firstTexts);
 
 Keep `"F4"` in the same slot of both command arrays when that key is what switches back. The blue squares are not in those arrays.
 
-### `page.WeaponConfigurationPanel` — the form
+### `page.CreateEngagementPanel` — the form
 
-`public class WeaponConfigurationPanel extends JPanel`
+`public class CreateEngagementPanel extends JPanel`
 
 This is the dark Create Engagement panel. It builds every control, holds them in fields, and copies them out through `readForm()`.
 
@@ -493,7 +493,7 @@ The Torpedo Distance line is a centred `FlowLayout` panel: the words “Torpedo 
 How you use the panel:
 
 ```java
-final WeaponConfigurationPanel form = new WeaponConfigurationPanel();
+final CreateEngagementPanel form = new CreateEngagementPanel();
 add(form, BorderLayout.EAST);
 
 form.getOkButton().addActionListener(new ActionListener() {
@@ -789,7 +789,7 @@ These are objects the screen creates from JDK classes, without a new `.java` fil
 | The F-key row | `FunctionKeyBar` | Transparent grid of twelve black buttons. |
 | Each function key | `FunctionKeyBar.KeyButton` | Black. Blue square with `F1`–`F12` on the left, white operation words on the right. |
 | Each key `AbstractAction` | `FunctionKeyBar.bindKey` | Turns that key into an `ActionEvent` for the shared listener. |
-| The title bar | `WeaponConfigurationPanel` | Dark bar, title on the west, × on the east. |
+| The title bar | `CreateEngagementPanel` | Dark bar, title on the west, × on the east. |
 | The title `JLabel` | title bar | White, `TITLE_FONT`. |
 | The × button | `closeControl` | Character ×, title font, empty border, content area not filled. Hides the form. |
 | The button bar | `buttonBar` | Dark, top rule, Cancel then OK, aligned right. |
@@ -811,7 +811,7 @@ The page blue and the footer blue are the same `new Color(168, 214, 245)`. The F
 main
   invokeLater
     new FunctionPage()
-      new WeaponConfigurationPanel()
+      new CreateEngagementPanel()
         Metal look on
         new HintField, OptionGroup, CheckGroup, JComboBox, HintArea, JButton
         build()
@@ -852,7 +852,7 @@ User presses F4
 **Put the form on a window you already have.**
 
 ```java
-final WeaponConfigurationPanel form = new WeaponConfigurationPanel();
+final CreateEngagementPanel form = new CreateEngagementPanel();
 add(form, BorderLayout.EAST);
 ```
 

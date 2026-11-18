@@ -9,7 +9,7 @@ You type in the form
 You press the bottom OK
         |
         v
-WeaponConfigurationPanel.readForm()     copies every field
+CreateEngagementPanel.readForm()     copies every field
         |
         v
 Engagement                              a plain object, no buttons inside it
@@ -22,7 +22,7 @@ The three files are:
 
 | File | Role |
 |---|---|
-| `src/main/java/page/WeaponConfigurationPanel.java` | The form. `readForm()` copies the screen. |
+| `src/main/java/page/CreateEngagementPanel.java` | The form. `readForm()` copies the screen. |
 | `src/main/java/page/model/Engagement.java` | The values, after they have left the screen. |
 | `src/main/java/page/backend/EngagementService.java` | The method that receives them. |
 
@@ -174,7 +174,7 @@ Cancel does not call `readForm()` and does not call `create()`.
 
 ## 7. Adding the form to an existing screen
 
-Do this on the window that is already in the other project. Do not copy `FunctionPage`. That class is only the blue practice window in this sample. The form you add is `WeaponConfigurationPanel`.
+Do this on the window that is already in the other project. Do not copy `FunctionPage`. That class is only the blue practice window in this sample. The form you add is `CreateEngagementPanel`.
 
 ### Files to copy
 
@@ -182,7 +182,7 @@ Copy these into that project’s source tree, keeping the same folders under the
 
 | Copy this | Why |
 |---|---|
-| `page/WeaponConfigurationPanel.java` | The Create Engagement form. |
+| `page/CreateEngagementPanel.java` | The Create Engagement form. |
 | `page/form/` (every file in that folder) | The rows, cards, colours, hints. The panel does not compile without them. |
 | `page/model/Engagement.java` | The object `readForm()` fills. Skip it if that project already has its own engagement class. |
 | `page/backend/EngagementService.java` | Only if you want a place to receive the object. If a save method already exists, call that method and do not copy this class. |
@@ -217,14 +217,14 @@ The form is a `JPanel`. Add it the same way that screen adds any other panel.
 If the screen uses `BorderLayout` and the form should sit on the right, as it does in this sample:
 
 ```java
-WeaponConfigurationPanel form = new WeaponConfigurationPanel();
+CreateEngagementPanel form = new CreateEngagementPanel();
 add(form, BorderLayout.EAST);
 ```
 
 If the form should fill the screen:
 
 ```java
-WeaponConfigurationPanel form = new WeaponConfigurationPanel();
+CreateEngagementPanel form = new CreateEngagementPanel();
 add(form, BorderLayout.CENTER);
 ```
 
@@ -233,7 +233,7 @@ If the screen uses another layout, find the `add(...)` call that places the pane
 `form` must be `final` if an anonymous OK listener below uses it. Java 6 only lets that listener read a local variable when the variable is `final`.
 
 ```java
-final WeaponConfigurationPanel form = new WeaponConfigurationPanel();
+final CreateEngagementPanel form = new CreateEngagementPanel();
 ```
 
 ### Connect the bottom OK to the existing save
@@ -284,4 +284,4 @@ Search the existing screen for these words when you are looking for the spot to 
 | `getText()` or `getSelectedItem()` | Their current way of reading fields. Yours is `readForm()` instead. |
 | `actionPerformed` | The method that runs on a click. Your OK listener is one of these. |
 
-Their OK method is the backend entry. Your listener should end by calling it. Do not copy their screen into `FunctionPage`, and do not give their save method the `WeaponConfigurationPanel`. Give it the `Engagement` from `readForm()`.
+Their OK method is the backend entry. Your listener should end by calling it. Do not copy their screen into `FunctionPage`, and do not give their save method the `CreateEngagementPanel`. Give it the `Engagement` from `readForm()`.

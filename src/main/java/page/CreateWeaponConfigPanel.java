@@ -49,6 +49,10 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     private final OptionGroup weapon;
     private final JTextField configName;
+    private final JComboBox nameList;
+    private final boolean nameIsList;
+    private final String heading;
+    private boolean filling;
     private final JComboBox initialSpeed;
     private final JTextField orderedSpeed;
     private final JTextField orderedDepth;
@@ -71,7 +75,17 @@ public class CreateWeaponConfigPanel extends JPanel {
     private JScrollPane formScroll;
 
     public CreateWeaponConfigPanel() {
+        this("CREATE WEAPON CONFIGURATION", false);
+    }
+
+    /**
+     * heading is the cyan title.
+     * nameIsList uses a drop-down of saved config names instead of a typed name.
+     */
+    protected CreateWeaponConfigPanel(String heading, boolean nameIsList) {
         super(new BorderLayout());
+        this.heading = heading;
+        this.nameIsList = nameIsList;
         LookAndFeel previous = UIManager.getLookAndFeel();
         try {
             MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
@@ -81,6 +95,7 @@ public class CreateWeaponConfigPanel extends JPanel {
         }
         weapon = new OptionGroup(new String[] {"EHWT WAR", "EHWT EXE"}, -1, 2);
         configName = Mono.field(18);
+        nameList = Mono.combo(new String[0]);
         initialSpeed = blankCombo(SPEEDS);
         orderedSpeed = Mono.field(12);
         orderedDepth = Mono.field(12);
@@ -125,7 +140,11 @@ public class CreateWeaponConfigPanel extends JPanel {
         form.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
         form.add(banner("WEAPON CONFIGURATION"));
         form.add(pad(weapon));
-        form.add(pad(new FormRow("Config name", configName)));
+        if (nameIsList) {
+            form.add(pad(new FormRow("Config name", nameList)));
+        } else {
+            form.add(pad(new FormRow("Config name", configName)));
+        }
         form.add(banner("PARAMETER CONFIGURATION"));
         form.add(new GroupLabel("TORPEDO TRAJECTORY"));
         form.add(pad(new FormRow("Initial Speed", initialSpeed)));
@@ -152,7 +171,9 @@ public class CreateWeaponConfigPanel extends JPanel {
     /** Blank create form. Enb Dist, Max RD, and the attack sonar range keep their starting numbers. */
     public void reset() {
         weapon.setSelected("");
-        configName.setText("");
+        if (!nameIsList) {
+            configName.setText("");
+        }
         clear(initialSpeed);
         orderedSpeed.setText("");
         orderedDepth.setText("");
@@ -176,7 +197,7 @@ public class CreateWeaponConfigPanel extends JPanel {
     public WeaponConfig readForm() {
         WeaponConfig config = new WeaponConfig();
         config.setWeapon(weapon.getSelected());
-        config.setConfigName(configName.getText());
+        config.setConfigName(getConfigName());
         config.setInitialSpeed(selected(initialSpeed));
         config.setOrderedSpeed(orderedSpeed.getText());
         config.setOrderedDepth(orderedDepth.getText());
@@ -197,6 +218,70 @@ public class CreateWeaponConfigPanel extends JPanel {
         return config;
     }
 
+    public String getConfigName() {
+        if (nameIsList) {
+            return selected(nameList);
+        }
+        return configName.getText();
+    }
+
+    /** Saved config names. The first name is selected. */
+    public void setNames(String[] names) {
+        filling = true;
+        nameList.removeAllItems();
+        if (names != null) {
+            for (int i = 0; i < names.length; i++) {
+                nameList.addItem(names[i]);
+            }
+        }
+        filling = false;
+        if (names != null && names.length > 0) {
+            nameList.setSelectedIndex(0);
+        }
+    }
+
+    public String getSelectedName() {
+        return selected(nameList);
+    }
+
+    public void addNameListener(ActionListener listener) {
+        nameList.addActionListener(listener);
+    }
+
+    public boolean isFilling() {
+        return filling;
+    }
+
+    /** Fill every control from a saved weapon configuration. */
+    public void apply(WeaponConfig config) {
+        filling = true;
+        weapon.setSelected(config.getWeapon());
+        if (nameIsList) {
+            nameList.setSelectedItem(config.getConfigName());
+        } else {
+            configName.setText(config.getConfigName());
+        }
+        showChoice(initialSpeed, config.getInitialSpeed());
+        orderedSpeed.setText(config.getOrderedSpeed());
+        orderedDepth.setText(config.getOrderedDepth());
+        searchSpeed.setText(config.getSearchSpeed());
+        enbDist.setText(config.getEnbDist());
+        safetySonarRange.setText(config.getSafetySonarRange());
+        udl.setText(config.getUdl());
+        ldl.setText(config.getLdl());
+        showChoice(ash, config.getAsh());
+        maxRd.setText(config.getMaxRd());
+        showChoice(acousticHeadMode, config.getAcousticHeadMode());
+        attackSonarRange.setText(config.getAttackSonarRange());
+        showChoice(attackMode, config.getAttackMode());
+        showChoice(wakeGuidance, config.getWakeGuidance());
+        showChoice(guidanceMode, config.getGuidanceMode());
+        showChoice(homingMode, config.getHomingMode());
+        comments.setText(config.getComments());
+        filling = false;
+        scrollToTop();
+    }
+
     public JButton getOkButton() {
         return okButton;
     }
@@ -209,7 +294,7 @@ public class CreateWeaponConfigPanel extends JPanel {
         JPanel bar = new JPanel(new BorderLayout());
         bar.setBackground(Mono.ACCENT);
         bar.setOpaque(true);
-        JLabel title = new JLabel("CREATE WEAPON CONFIGURATION", SwingConstants.CENTER);
+        JLabel title = new JLabel(heading, SwingConstants.CENTER);
         title.setForeground(Color.BLACK);
         title.setFont(new Font("Dialog", Font.BOLD, 14));
         title.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
@@ -252,6 +337,14 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     private static void clear(JComboBox box) {
         box.setSelectedIndex(-1);
+    }
+
+    private static void showChoice(JComboBox box, String value) {
+        if (value == null || value.length() == 0) {
+            box.setSelectedIndex(-1);
+            return;
+        }
+        box.setSelectedItem(value);
     }
 
     private static String selected(JComboBox box) {

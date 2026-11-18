@@ -37,7 +37,7 @@ import page.model.Engagement;
  * Create Engagement form, built from the pieces in page.form.
  * Copy this class and change build() when you need a similar screen.
  */
-public class WeaponConfigurationPanel extends JPanel {
+public class CreateEngagementPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -45,6 +45,10 @@ public class WeaponConfigurationPanel extends JPanel {
 
     private final HintField field1;
     private final HintField field2;
+    private final JComboBox nameList;
+    private final boolean nameIsList;
+    private final String heading;
+    private boolean filling;
     private final OptionGroup group1;
     private final OptionGroup group2;
     private final OptionGroup group3;
@@ -60,8 +64,18 @@ public class WeaponConfigurationPanel extends JPanel {
     private JScrollPane formScroll;
     private final Map<String, JTextField> parameters = new LinkedHashMap<String, JTextField>();
 
-    public WeaponConfigurationPanel() {
+    public CreateEngagementPanel() {
+        this("CREATE ENGAGEMENT", false);
+    }
+
+    /**
+     * heading is the title on the form.
+     * nameIsList uses a drop-down of engagement names instead of a typed name.
+     */
+    protected CreateEngagementPanel(String heading, boolean nameIsList) {
         super(new BorderLayout());
+        this.heading = heading;
+        this.nameIsList = nameIsList;
         LookAndFeel previous = UIManager.getLookAndFeel();
         try {
             MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
@@ -71,6 +85,7 @@ public class WeaponConfigurationPanel extends JPanel {
         }
         field1 = new HintField("Enter Engagement No", 18);
         field2 = new HintField("Enter Engagement Name", 18);
+        nameList = Mono.combo(new String[0]);
         group1 = new OptionGroup(new String[] {"Prosp Eng", "Real Engine"}, 0, 2);
         group2 = new OptionGroup(new String[] {"ETH WVR", "ETH WEXE"}, 0, 2);
         group3 = new OptionGroup(new String[] {"Yes", "No"}, 1, 2);
@@ -111,7 +126,7 @@ public class WeaponConfigurationPanel extends JPanel {
         Mono.paint(bar);
         bar.setBorder(BorderFactory.createEmptyBorder(8, 12, 4, 8));
 
-        JLabel title = new JLabel("CREATE ENGAGEMENT");
+        JLabel title = new JLabel(heading);
         title.setForeground(Mono.FOREGROUND);
         title.setFont(Mono.TITLE_FONT);
         bar.add(title, BorderLayout.WEST);
@@ -131,7 +146,11 @@ public class WeaponConfigurationPanel extends JPanel {
 
         form.add(new FormRow("Eng No", field1));
         form.add(Box.createVerticalStrut(8));
-        form.add(new FormRow("Engagement Name", field2));
+        if (nameIsList) {
+            form.add(new FormRow("Engagement Name", nameList));
+        } else {
+            form.add(new FormRow("Engagement Name", field2));
+        }
         form.add(new Heading("ENGAGEMENT CONFIGURATION"));
         form.add(section1Card());
         form.add(new Heading("TARGET PARAMETERS"));
@@ -298,7 +317,37 @@ public class WeaponConfigurationPanel extends JPanel {
     }
 
     public String getField2() {
+        if (nameIsList) {
+            return selected(nameList);
+        }
         return field2.getValue();
+    }
+
+    /** Names already stored. The first name is selected, which loads that engagement. */
+    public void setNames(String[] names) {
+        filling = true;
+        nameList.removeAllItems();
+        if (names != null) {
+            for (int i = 0; i < names.length; i++) {
+                nameList.addItem(names[i]);
+            }
+        }
+        filling = false;
+        if (names != null && names.length > 0) {
+            nameList.setSelectedIndex(0);
+        }
+    }
+
+    public String getSelectedName() {
+        return selected(nameList);
+    }
+
+    public void addNameListener(ActionListener listener) {
+        nameList.addActionListener(listener);
+    }
+
+    public boolean isFilling() {
+        return filling;
     }
 
     public String getGroup1() {
@@ -346,7 +395,9 @@ public class WeaponConfigurationPanel extends JPanel {
     /** Put the form back to the Create Engagement starting values. */
     public void resetForCreate() {
         field1.setValue("");
-        field2.setValue("");
+        if (!nameIsList) {
+            field2.setValue("");
+        }
         group1.setSelected("Prosp Eng");
         group2.setSelected("ETH WVR");
         group3.setSelected("No");
@@ -370,8 +421,13 @@ public class WeaponConfigurationPanel extends JPanel {
 
     /** Fill every control from a saved engagement. The layout stays the create form. */
     public void apply(Engagement engagement) {
+        filling = true;
         field1.setValue(engagement.getField1());
-        field2.setValue(engagement.getField2());
+        if (nameIsList) {
+            nameList.setSelectedItem(engagement.getField2());
+        } else {
+            field2.setValue(engagement.getField2());
+        }
         group1.setSelected(engagement.getGroup1());
         group2.setSelected(engagement.getGroup2());
         group3.setSelected(engagement.getGroup3());
@@ -390,6 +446,7 @@ public class WeaponConfigurationPanel extends JPanel {
         setParameter("Lat", engagement.getP9());
         selectItem(field5, engagement.getField5());
         field6.setValue(engagement.getField6());
+        filling = false;
         scrollToTop();
     }
 
@@ -406,7 +463,7 @@ public class WeaponConfigurationPanel extends JPanel {
     public Engagement readForm() {
         Engagement engagement = new Engagement();
         engagement.setField1(field1.getValue());
-        engagement.setField2(field2.getValue());
+        engagement.setField2(getField2());
         engagement.setGroup1(group1.getSelected());
         engagement.setGroup2(group2.getSelected());
         engagement.setGroup3(group3.getSelected());

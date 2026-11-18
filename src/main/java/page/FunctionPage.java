@@ -19,6 +19,7 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
 import page.backend.EngagementService;
+import page.backend.WeaponConfigService;
 import page.model.Engagement;
 import page.model.WeaponConfig;
 
@@ -26,8 +27,11 @@ import page.model.WeaponConfig;
 /**
  * The screen. One listener handles every footer button.
  * The window opens with Engagement Parameters in the lower-right form slot.
- * F1 calls create() and puts a blank Create Engagement form in that same slot.
- * F2 calls onF2() and shows that same form filled from the last save.
+ * F1 calls create() and puts a blank Create Engagement form in that slot.
+ * OK on that form stores it and returns to Engagement Parameters.
+ * F2 calls onF2() and opens ModifyEngagementPanel.
+ * The name drop-down lists engagements already stored. The chosen name fills the form.
+ * F3 calls onF3() and shows Delete Engagement.
  * After F4, the first key is command B1. It opens Create Weapon Configuration.
  * OK on that form opens the saved stage 6 screen.
  * F4 swaps the footer to a second set of buttons.
@@ -48,13 +52,13 @@ public class FunctionPage extends JFrame {
 
     /** Words beside the blue F1–F12 squares on the first set. */
     private static final String[] FIRST_TEXT = {
-        "Create", "Modify", "Op 3", "Swap", "Op 5", "Op 6",
+        "Create", "Modify", "Delete", "Swap", "Op 5", "Op 6",
         "Op 7", "Op 8", "Op 9", "Op 10", "Op 11", "Op 12"
     };
 
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
     private static final String[] SECOND_TEXT = {
-        "WConfig", "Alt 2", "Alt 3", "Swap", "Alt 5", "Alt 6",
+        "WConfig", "Modify", "Alt 3", "Swap", "Alt 5", "Alt 6",
         "Alt 7", "Alt 8", "Alt 9", "Alt 10", "Alt 11", "Alt 12"
     };
 
@@ -66,13 +70,16 @@ public class FunctionPage extends JFrame {
     private final CardLayout formCards = new CardLayout();
     private final JPanel formSlot = new JPanel(formCards);
     private EngagementParametersPanel parameters;
-    private WeaponConfigurationPanel form;
+    private CreateEngagementPanel form;
+    private ModifyEngagementPanel modifyForm;
+    private DeleteEngagementPanel deleteForm;
     private CreateWeaponConfigPanel weaponForm;
+    private ModifyWeaponConfigPanel modifyWeaponForm;
     private SavedWeaponConfigPanel stage6;
     private EngagementService backend;
+    private WeaponConfigService weaponBackend;
     private FunctionKeyBar footer;
     private boolean secondSet;
-    private boolean modifying;
 
     /**
      * One listener for every function button.
@@ -166,8 +173,11 @@ public class FunctionPage extends JFrame {
             /* Keep the look that is already installed. */
         }
         parameters = new EngagementParametersPanel();
-        form = new WeaponConfigurationPanel();
+        form = new CreateEngagementPanel();
+        modifyForm = new ModifyEngagementPanel();
+        deleteForm = new DeleteEngagementPanel();
         weaponForm = new CreateWeaponConfigPanel();
+        modifyWeaponForm = new ModifyWeaponConfigPanel();
         stage6 = new SavedWeaponConfigPanel();
         try {
             UIManager.setLookAndFeel(previous);
@@ -175,31 +185,92 @@ public class FunctionPage extends JFrame {
             /* Leave the look the forms were built with. */
         }
         backend = new EngagementService();
+        weaponBackend = new WeaponConfigService();
         form.getOkButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 Engagement engagement = form.readForm();
-                if (modifying) {
-                    backend.update(engagement);
-                    resultLabel.setText("Modified " + engagement.getField1()
-                            + " / " + engagement.getGroup1());
-                } else {
-                    backend.create(engagement);
-                    resultLabel.setText("Saved " + engagement.getField1()
-                            + " / " + engagement.getGroup1());
+                backend.create(engagement);
+                resultLabel.setText("Saved " + engagement.getField1()
+                        + " / " + engagement.getGroup1());
+                showParameters();
+            }
+        });
+        modifyForm.addNameListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                if (modifyForm.isFilling()) {
+                    return;
                 }
+                Engagement selected = backend.findByName(modifyForm.getSelectedName());
+                if (selected != null) {
+                    modifyForm.apply(selected);
+                }
+            }
+        });
+        modifyForm.getOkButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                Engagement engagement = modifyForm.readForm();
+                backend.update(engagement);
+                resultLabel.setText("Modified " + engagement.getField1()
+                        + " / " + engagement.getGroup1());
+                showParameters();
+            }
+        });
+        modifyForm.getCancelButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Cancel");
+                showParameters();
             }
         });
         form.getCancelButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 resultLabel.setText("Cancel");
+                showParameters();
+            }
+        });
+        deleteForm.getOkButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Delete " + deleteForm.getEngNo());
+                showParameters();
+            }
+        });
+        deleteForm.getCancelButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Cancel");
+                showParameters();
             }
         });
         weaponForm.getOkButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 WeaponConfig config = weaponForm.readForm();
+                weaponBackend.create(config);
                 stage6.apply(config);
                 formCards.show(formSlot, "stage6");
                 resultLabel.setText("Saved weapon configuration");
+            }
+        });
+        modifyWeaponForm.addNameListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                if (modifyWeaponForm.isFilling()) {
+                    return;
+                }
+                WeaponConfig selected = weaponBackend.findByName(modifyWeaponForm.getSelectedName());
+                if (selected != null) {
+                    modifyWeaponForm.apply(selected);
+                }
+            }
+        });
+        modifyWeaponForm.getOkButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                WeaponConfig config = modifyWeaponForm.readForm();
+                weaponBackend.update(config);
+                stage6.apply(config);
+                formCards.show(formSlot, "stage6");
+                resultLabel.setText("Modified weapon configuration");
+            }
+        });
+        modifyWeaponForm.getCancelButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Cancel");
             }
         });
         weaponForm.getCancelButton().addActionListener(new ActionListener() {
@@ -212,7 +283,10 @@ public class FunctionPage extends JFrame {
         formSlot.setPreferredSize(new Dimension(FORM_WIDTH, 400));
         formSlot.add(parameters, "parameters");
         formSlot.add(form, "create");
+        formSlot.add(modifyForm, "modify");
+        formSlot.add(deleteForm, "delete");
         formSlot.add(weaponForm, "wconfig");
+        formSlot.add(modifyWeaponForm, "modifyWeapon");
         formSlot.add(stage6, "stage6");
         formCards.show(formSlot, "parameters");
 
@@ -244,28 +318,36 @@ public class FunctionPage extends JFrame {
 
     /** F1. Puts a fresh Create Engagement form in the lower-right slot. */
     private void create() {
-        modifying = false;
         form.resetForCreate();
         formCards.show(formSlot, "create");
         resultLabel.setText("Create engagement");
     }
 
-    /** F2. Same form as create, filled with the engagement that was saved. */
+    /** F2. Modify Engagement. The name drop-down picks which stored engagement to open. */
     private void onF2() {
-        Engagement saved = backend.getLastCreated();
-        if (saved == null) {
+        String[] names = backend.names();
+        if (names.length == 0) {
             resultLabel.setText("Create an engagement first");
             return;
         }
-        modifying = true;
-        form.apply(saved);
-        formCards.show(formSlot, "create");
+        modifyForm.setNames(names);
+        Engagement selected = backend.findByName(modifyForm.getSelectedName());
+        if (selected != null) {
+            modifyForm.apply(selected);
+        }
+        formCards.show(formSlot, "modify");
         resultLabel.setText("Modify engagement");
     }
 
-    /** F3. */
+    /** F3. Delete Engagement. Eng No lists 1, 2, and 3 until real numbers are supplied. */
     private void onF3() {
-        resultLabel.setText("F3");
+        formCards.show(formSlot, "delete");
+        resultLabel.setText("Delete engagement");
+    }
+
+    /** The page that is showing when the window opens, and after OK or Cancel. */
+    private void showParameters() {
+        formCards.show(formSlot, "parameters");
     }
 
     /**
@@ -331,9 +413,20 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("Create weapon configuration");
     }
 
-    /** B2. */
+    /** F2 after the key swap. Modify Weapon Configuration for the chosen config name. */
     private void onB2() {
-        resultLabel.setText("B2");
+        String[] names = weaponBackend.names();
+        if (names.length == 0) {
+            resultLabel.setText("Create a weapon configuration first");
+            return;
+        }
+        modifyWeaponForm.setNames(names);
+        WeaponConfig selected = weaponBackend.findByName(modifyWeaponForm.getSelectedName());
+        if (selected != null) {
+            modifyWeaponForm.apply(selected);
+        }
+        formCards.show(formSlot, "modifyWeapon");
+        resultLabel.setText("Modify weapon configuration");
     }
 
     /** B3. */
