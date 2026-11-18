@@ -21,6 +21,7 @@ import page.form.FormStack;
 import page.form.GroupLabel;
 import page.form.Mono;
 import page.form.OptionGroup;
+import page.model.WeaponConfig;
 
 /**
  * Engagement Parameters. This is the screen shown when the window opens.
@@ -106,6 +107,16 @@ public class EngagementParametersPanel extends JPanel {
         return form;
     }
 
+    /** Copy the weapon choices onto this screen. This is the stage 6 view. */
+    public void applyWeapon(WeaponConfig config) {
+        weapon.setSelected(config.getWeapon());
+        configName.setText(config.getConfigName());
+        choose(acousticHeadMode, config.getAcousticHeadMode());
+        choose(attackMode, config.getAttackMode());
+        choose(wakeSensor, config.getWakeGuidance());
+        choose(guidanceMode, config.getGuidanceMode());
+    }
+
     public String getAcousticHeadMode() {
         return selected(acousticHeadMode);
     }
@@ -120,6 +131,13 @@ public class EngagementParametersPanel extends JPanel {
 
     public String getGuidanceMode() {
         return selected(guidanceMode);
+    }
+
+    private static void choose(JComboBox box, String value) {
+        if (value == null || value.length() == 0) {
+            return;
+        }
+        box.setSelectedItem(value);
     }
 
     private static String selected(JComboBox box) {

@@ -29,7 +29,7 @@ This project
     page.EngagementParametersPanel     lower-right form when the window opens
     page.CreateEngagementPanel      lower-right form after F1
     page.CreateWeaponConfigPanel      weapon form after F4, then the F1 key
-    page.SavedWeaponConfigPanel        stage 6, after OK on that weapon form
+    page.ModifyWeaponConfigPanel      weapon form after F4, then the F2 key
     page.model.Engagement              the values after they leave the form
     page.backend.EngagementService     the method that receives those values
     page.form.*                        the rows, cards, colours, and hints

@@ -75,7 +75,6 @@ public class FunctionPage extends JFrame {
     private DeleteEngagementPanel deleteForm;
     private CreateWeaponConfigPanel weaponForm;
     private ModifyWeaponConfigPanel modifyWeaponForm;
-    private SavedWeaponConfigPanel stage6;
     private EngagementService backend;
     private WeaponConfigService weaponBackend;
     private FunctionKeyBar footer;
@@ -178,7 +177,6 @@ public class FunctionPage extends JFrame {
         deleteForm = new DeleteEngagementPanel();
         weaponForm = new CreateWeaponConfigPanel();
         modifyWeaponForm = new ModifyWeaponConfigPanel();
-        stage6 = new SavedWeaponConfigPanel();
         try {
             UIManager.setLookAndFeel(previous);
         } catch (Exception ex) {
@@ -243,9 +241,9 @@ public class FunctionPage extends JFrame {
             public void actionPerformed(ActionEvent event) {
                 WeaponConfig config = weaponForm.readForm();
                 weaponBackend.create(config);
-                stage6.apply(config);
-                formCards.show(formSlot, "stage6");
+                parameters.applyWeapon(config);
                 resultLabel.setText("Saved weapon configuration");
+                showParameters();
             }
         });
         modifyWeaponForm.addNameListener(new ActionListener() {
@@ -263,19 +261,21 @@ public class FunctionPage extends JFrame {
             public void actionPerformed(ActionEvent event) {
                 WeaponConfig config = modifyWeaponForm.readForm();
                 weaponBackend.update(config);
-                stage6.apply(config);
-                formCards.show(formSlot, "stage6");
+                parameters.applyWeapon(config);
                 resultLabel.setText("Modified weapon configuration");
+                showParameters();
             }
         });
         modifyWeaponForm.getCancelButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 resultLabel.setText("Cancel");
+                showParameters();
             }
         });
         weaponForm.getCancelButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 resultLabel.setText("Cancel");
+                showParameters();
             }
         });
 
@@ -287,7 +287,6 @@ public class FunctionPage extends JFrame {
         formSlot.add(deleteForm, "delete");
         formSlot.add(weaponForm, "wconfig");
         formSlot.add(modifyWeaponForm, "modifyWeapon");
-        formSlot.add(stage6, "stage6");
         formCards.show(formSlot, "parameters");
 
         JPanel right = new JPanel(new BorderLayout(0, 4));

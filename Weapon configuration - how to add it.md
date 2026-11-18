@@ -41,7 +41,7 @@ If `page/form/` is already in the other project, leave it there.
 | `page/model/WeaponConfig.java` | The values OK reads. No Swing types. This is what `weaponPresenter` should receive. |
 | `page/form/` | Only when that folder is not in the other project yet. |
 
-`SavedWeaponConfigPanel` is the stage 6 screen in this sample. Their engagement page is already that screen, built as the panels inside `EngagementView`. Do not add a second copy of it unless that page is missing. On OK, hide the create form and run the action that already shows their engagement panels.
+Stage 6 is the engagement parameters screen already on `EngagementView`. This sample does not keep a second copy. OK and Cancel on every form show that screen again. On OK from a weapon form, the weapon choice and config name are written onto it first.
 
 Change `package page...;` to their package. Do not copy `FunctionPage`. Their view already has the footer.
 
@@ -101,7 +101,7 @@ weaponForm.getOkButton().addActionListener(new ActionListener() {
 
 `showEngagementPage` stands for the action they already have that turns the engagement panels visible: `setVisible(true)` on the engagement right panel and the fields that belong to that page, `setVisible(false)` on the panels that page hides. Call that existing method. Do not write a new set of visibility lines if the method is already there.
 
-Cancel only hides the create form, or it calls the action they use for leaving without saving. It does not call `readForm()`.
+Cancel calls that same show-engagement action. It does not call `readForm()`. OK and Cancel on every form return to Engagement Parameters.
 
 | Field | Choices |
 |---|---|
