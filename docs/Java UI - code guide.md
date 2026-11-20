@@ -15,6 +15,7 @@ This project is a practice screen you can copy into a larger Java 1.6 program.
 | `src/main/java/page/ModifyWeaponConfigPanel.java` | Modify Weapon Configuration. The second key after F4 opens it. Config name chooses which one to load. |
 | `src/main/java/page/DeleteWeaponConfigPanel.java` | Delete Weapon Config. The third key after F4 opens it. EHWT WAR / EHWT EXE and Config name. |
 | `src/main/java/page/ListWeaponConfigPanel.java` | List of weapon configurations. F8 opens it. Choosing a config name displays that configuration. The fields cannot be edited. |
+| `src/main/java/page/ListEngagementPanel.java` | List of engagements. F7 opens it. Same fields as Create Engagement. Choosing a name displays that engagement. The fields cannot be edited. |
 | `src/main/java/page/form/` | The reusable rows, sections, and option groups. |
 | `pom.xml` | Tells Maven to compile this as Java 1.6 and which class to start. |
 | `.gitignore` | Tells git which generated files to leave out of the repository. |

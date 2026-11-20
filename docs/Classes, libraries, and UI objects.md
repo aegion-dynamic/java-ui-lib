@@ -32,6 +32,7 @@ This project
     page.ModifyWeaponConfigPanel      weapon form after F4, then the F2 key
     page.DeleteWeaponConfigPanel      weapon form after F4, then the F3 key
     page.ListWeaponConfigPanel        display form. F8 opens it. A config name shows that configuration
+    page.ListEngagementPanel          display form. F7 opens it. An engagement name shows that engagement
     page.model.Engagement              the values after they leave the form
     page.backend.EngagementService     the method that receives those values
     page.form.*                        the rows, cards, colours, and hints

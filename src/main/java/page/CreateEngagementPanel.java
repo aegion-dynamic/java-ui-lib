@@ -61,11 +61,12 @@ public class CreateEngagementPanel extends JPanel {
     private final JButton cancelButton;
     private final JButton okButton;
     private final JButton closeButton;
+    private JButton distanceOk;
     private JScrollPane formScroll;
     private final Map<String, JTextField> parameters = new LinkedHashMap<String, JTextField>();
 
     public CreateEngagementPanel() {
-        this("CREATE ENGAGEMENT", false);
+        this("CREATE ENGAGEMENT", false, false);
     }
 
     /**
@@ -73,6 +74,14 @@ public class CreateEngagementPanel extends JPanel {
      * nameIsList uses a drop-down of engagement names instead of a typed name.
      */
     protected CreateEngagementPanel(String heading, boolean nameIsList) {
+        this(heading, nameIsList, false);
+    }
+
+    /**
+     * displayOnly locks every field except the engagement-name drop-down.
+     * OK is hidden. The name drop-down still loads a stored engagement.
+     */
+    protected CreateEngagementPanel(String heading, boolean nameIsList, boolean displayOnly) {
         super(new BorderLayout());
         this.heading = heading;
         this.nameIsList = nameIsList;
@@ -104,6 +113,9 @@ public class CreateEngagementPanel extends JPanel {
         closeButton = closeControl();
         try {
             build();
+            if (displayOnly) {
+                lockForDisplay();
+            }
         } finally {
             try {
                 UIManager.setLookAndFeel(previous);
@@ -183,10 +195,10 @@ public class CreateEngagementPanel extends JPanel {
         Mono.paint(line);
         JLabel label = new JLabel("Torpedo Distance");
         Mono.paint(label);
-        JButton smallOk = Mono.button("OK");
+        distanceOk = Mono.button("OK");
         line.add(label);
         line.add(field3);
-        line.add(smallOk);
+        line.add(distanceOk);
         return row(line);
     }
 
@@ -332,10 +344,20 @@ public class CreateEngagementPanel extends JPanel {
                 nameList.addItem(names[i]);
             }
         }
+        namesChanged(names);
         filling = false;
         if (names != null && names.length > 0) {
             nameList.setSelectedIndex(0);
         }
+    }
+
+    /** Called while setNames is filling the drop-down. The list form replaces this. */
+    protected void namesChanged(String[] names) {
+    }
+
+    /** Select that engagement name in the drop-down. */
+    public void setSelectedName(String name) {
+        nameList.setSelectedItem(name);
     }
 
     public String getSelectedName() {
@@ -448,6 +470,31 @@ public class CreateEngagementPanel extends JPanel {
         field6.setValue(engagement.getField6());
         filling = false;
         scrollToTop();
+    }
+
+    private void lockForDisplay() {
+        field1.setEditable(false);
+        field1.setFocusable(false);
+        field2.setEditable(false);
+        field2.setFocusable(false);
+        field3.setEditable(false);
+        field6.setEditable(false);
+        field6.setFocusable(false);
+        group1.setLocked(true);
+        group2.setLocked(true);
+        group3.setLocked(true);
+        group4.setLocked(true);
+        group5.setEnabled(false);
+        field4.setEnabled(false);
+        field5.setEnabled(false);
+        java.util.Iterator values = parameters.values().iterator();
+        while (values.hasNext()) {
+            ((JTextField) values.next()).setEditable(false);
+        }
+        if (distanceOk != null) {
+            distanceOk.setEnabled(false);
+        }
+        okButton.setVisible(false);
     }
 
     public void scrollToTop() {

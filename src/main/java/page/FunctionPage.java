@@ -34,6 +34,7 @@ import page.model.WeaponConfig;
  * F3 calls onF3() and shows Delete Engagement.
  * After F4, the first key is command B1. It opens Create Weapon Configuration.
  * The second key opens Modify Weapon Configuration. The third opens Delete Weapon Config.
+ * F7 opens List of Engagements. The chosen name fills the Create Engagement fields, and the fields stay read-only.
  * F8 opens List of Weapon Configurations. The chosen name fills the fields, and the fields stay read-only.
  * F4 swaps the footer to a second set of buttons.
  * A second F4 restores the first set. The other methods are empty
@@ -54,7 +55,7 @@ public class FunctionPage extends JFrame {
     /** Words beside the blue F1–F12 squares on the first set. */
     private static final String[] FIRST_TEXT = {
         "Create", "Modify", "Delete", "Swap", "Op 5", "Op 6",
-        "Op 7", "List", "Op 9", "Op 10", "Op 11", "Op 12"
+        "Engs", "List", "Op 9", "Op 10", "Op 11", "Op 12"
     };
 
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
@@ -78,6 +79,7 @@ public class FunctionPage extends JFrame {
     private ModifyWeaponConfigPanel modifyWeaponForm;
     private DeleteWeaponConfigPanel deleteWeaponForm;
     private ListWeaponConfigPanel listWeaponForm;
+    private ListEngagementPanel listEngagementForm;
     private EngagementService backend;
     private WeaponConfigService weaponBackend;
     private FunctionKeyBar footer;
@@ -182,6 +184,7 @@ public class FunctionPage extends JFrame {
         modifyWeaponForm = new ModifyWeaponConfigPanel();
         deleteWeaponForm = new DeleteWeaponConfigPanel();
         listWeaponForm = new ListWeaponConfigPanel();
+        listEngagementForm = new ListEngagementPanel();
         try {
             UIManager.setLookAndFeel(previous);
         } catch (Exception ex) {
@@ -312,6 +315,23 @@ public class FunctionPage extends JFrame {
                 showParameters();
             }
         });
+        listEngagementForm.addNameListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                if (listEngagementForm.isFilling()) {
+                    return;
+                }
+                Engagement selected = backend.findByName(listEngagementForm.getSelectedName());
+                if (selected != null) {
+                    listEngagementForm.apply(selected);
+                }
+            }
+        });
+        listEngagementForm.getCancelButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Cancel");
+                showParameters();
+            }
+        });
 
         formSlot.setBackground(DARK);
         formSlot.setPreferredSize(new Dimension(FORM_WIDTH, 400));
@@ -323,6 +343,7 @@ public class FunctionPage extends JFrame {
         formSlot.add(modifyWeaponForm, "modifyWeapon");
         formSlot.add(deleteWeaponForm, "deleteWeapon");
         formSlot.add(listWeaponForm, "listWeapon");
+        formSlot.add(listEngagementForm, "listEngagement");
         formCards.show(formSlot, "parameters");
 
         JPanel right = new JPanel(new BorderLayout(0, 4));
@@ -411,9 +432,20 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("F6");
     }
 
-    /** F7. */
+    /** F7. List of engagements. The name drop-down and the Name list only display. */
     private void onF7() {
-        resultLabel.setText("F7");
+        String[] names = backend.names();
+        if (names.length == 0) {
+            resultLabel.setText("Create an engagement first");
+            return;
+        }
+        listEngagementForm.setNames(names);
+        Engagement selected = backend.findByName(listEngagementForm.getSelectedName());
+        if (selected != null) {
+            listEngagementForm.apply(selected);
+        }
+        formCards.show(formSlot, "listEngagement");
+        resultLabel.setText("List engagement");
     }
 
     /** F8. List of weapon configurations. The name drop-down and the Config list only display. */
