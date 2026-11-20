@@ -75,7 +75,7 @@ public class CreateWeaponConfigPanel extends JPanel {
     private JScrollPane formScroll;
 
     public CreateWeaponConfigPanel() {
-        this("CREATE WEAPON CONFIGURATION", false);
+        this("CREATE WEAPON CONFIGURATION", false, false);
     }
 
     /**
@@ -83,6 +83,14 @@ public class CreateWeaponConfigPanel extends JPanel {
      * nameIsList uses a drop-down of saved config names instead of a typed name.
      */
     protected CreateWeaponConfigPanel(String heading, boolean nameIsList) {
+        this(heading, nameIsList, false);
+    }
+
+    /**
+     * displayOnly locks every field except the config-name drop-down.
+     * OK is hidden. The name drop-down still loads a stored configuration.
+     */
+    protected CreateWeaponConfigPanel(String heading, boolean nameIsList, boolean displayOnly) {
         super(new BorderLayout());
         this.heading = heading;
         this.nameIsList = nameIsList;
@@ -118,6 +126,9 @@ public class CreateWeaponConfigPanel extends JPanel {
         try {
             build();
             reset();
+            if (displayOnly) {
+                lockForDisplay();
+            }
         } finally {
             try {
                 UIManager.setLookAndFeel(previous);
@@ -234,10 +245,20 @@ public class CreateWeaponConfigPanel extends JPanel {
                 nameList.addItem(names[i]);
             }
         }
+        namesChanged(names);
         filling = false;
         if (names != null && names.length > 0) {
             nameList.setSelectedIndex(0);
         }
+    }
+
+    /** Called while setNames is filling the drop-down. The list form replaces this. */
+    protected void namesChanged(String[] names) {
+    }
+
+    /** Select that config name in the drop-down. */
+    public void setSelectedName(String name) {
+        nameList.setSelectedItem(name);
     }
 
     public String getSelectedName() {
@@ -327,6 +348,36 @@ public class CreateWeaponConfigPanel extends JPanel {
         if (formScroll != null) {
             formScroll.getVerticalScrollBar().setValue(0);
         }
+    }
+
+    private void lockForDisplay() {
+        weapon.setLocked(true);
+        lockField(orderedSpeed);
+        lockField(orderedDepth);
+        lockField(searchSpeed);
+        lockField(enbDist);
+        lockField(safetySonarRange);
+        lockField(udl);
+        lockField(ldl);
+        lockField(maxRd);
+        lockField(attackSonarRange);
+        comments.setEditable(false);
+        lockCombo(initialSpeed);
+        lockCombo(ash);
+        lockCombo(acousticHeadMode);
+        lockCombo(attackMode);
+        lockCombo(wakeGuidance);
+        lockCombo(guidanceMode);
+        lockCombo(homingMode);
+        okButton.setVisible(false);
+    }
+
+    private static void lockField(JTextField field) {
+        field.setEditable(false);
+    }
+
+    private static void lockCombo(JComboBox box) {
+        box.setEnabled(false);
     }
 
     private static JComboBox blankCombo(String[] items) {

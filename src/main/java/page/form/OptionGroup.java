@@ -52,6 +52,13 @@ public class OptionGroup extends Block {
         group.clearSelection();
     }
 
+    /** Stop clicks from changing the choice. The selected mark stays visible. */
+    public void setLocked(boolean locked) {
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setEnabled(!locked);
+        }
+    }
+
     /** The text of the selected choice, or an empty string when none is selected. */
     public String getSelected() {
         for (int i = 0; i < buttons.length; i++) {

@@ -34,6 +34,7 @@ import page.model.WeaponConfig;
  * F3 calls onF3() and shows Delete Engagement.
  * After F4, the first key is command B1. It opens Create Weapon Configuration.
  * The second key opens Modify Weapon Configuration. The third opens Delete Weapon Config.
+ * F8 opens List of Weapon Configurations. The chosen name fills the fields, and the fields stay read-only.
  * F4 swaps the footer to a second set of buttons.
  * A second F4 restores the first set. The other methods are empty
  * on purpose: fill those in with the functions from the real project.
@@ -53,7 +54,7 @@ public class FunctionPage extends JFrame {
     /** Words beside the blue F1–F12 squares on the first set. */
     private static final String[] FIRST_TEXT = {
         "Create", "Modify", "Delete", "Swap", "Op 5", "Op 6",
-        "Op 7", "Op 8", "Op 9", "Op 10", "Op 11", "Op 12"
+        "Op 7", "List", "Op 9", "Op 10", "Op 11", "Op 12"
     };
 
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
@@ -76,6 +77,7 @@ public class FunctionPage extends JFrame {
     private CreateWeaponConfigPanel weaponForm;
     private ModifyWeaponConfigPanel modifyWeaponForm;
     private DeleteWeaponConfigPanel deleteWeaponForm;
+    private ListWeaponConfigPanel listWeaponForm;
     private EngagementService backend;
     private WeaponConfigService weaponBackend;
     private FunctionKeyBar footer;
@@ -179,6 +181,7 @@ public class FunctionPage extends JFrame {
         weaponForm = new CreateWeaponConfigPanel();
         modifyWeaponForm = new ModifyWeaponConfigPanel();
         deleteWeaponForm = new DeleteWeaponConfigPanel();
+        listWeaponForm = new ListWeaponConfigPanel();
         try {
             UIManager.setLookAndFeel(previous);
         } catch (Exception ex) {
@@ -292,6 +295,23 @@ public class FunctionPage extends JFrame {
                 showParameters();
             }
         });
+        listWeaponForm.addNameListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                if (listWeaponForm.isFilling()) {
+                    return;
+                }
+                WeaponConfig selected = weaponBackend.findByName(listWeaponForm.getSelectedName());
+                if (selected != null) {
+                    listWeaponForm.apply(selected);
+                }
+            }
+        });
+        listWeaponForm.getCancelButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Cancel");
+                showParameters();
+            }
+        });
 
         formSlot.setBackground(DARK);
         formSlot.setPreferredSize(new Dimension(FORM_WIDTH, 400));
@@ -302,6 +322,7 @@ public class FunctionPage extends JFrame {
         formSlot.add(weaponForm, "wconfig");
         formSlot.add(modifyWeaponForm, "modifyWeapon");
         formSlot.add(deleteWeaponForm, "deleteWeapon");
+        formSlot.add(listWeaponForm, "listWeapon");
         formCards.show(formSlot, "parameters");
 
         JPanel right = new JPanel(new BorderLayout(0, 4));
@@ -395,9 +416,20 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("F7");
     }
 
-    /** F8. */
+    /** F8. List of weapon configurations. The name drop-down and the Config list only display. */
     private void onF8() {
-        resultLabel.setText("F8");
+        String[] names = weaponBackend.names();
+        if (names.length == 0) {
+            resultLabel.setText("Create a weapon configuration first");
+            return;
+        }
+        listWeaponForm.setNames(names);
+        WeaponConfig selected = weaponBackend.findByName(listWeaponForm.getSelectedName());
+        if (selected != null) {
+            listWeaponForm.apply(selected);
+        }
+        formCards.show(formSlot, "listWeapon");
+        resultLabel.setText("List weapon configuration");
     }
 
     /** F9. */

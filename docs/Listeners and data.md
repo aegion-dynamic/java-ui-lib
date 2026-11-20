@@ -14,6 +14,7 @@ Every OK and every Cancel returns to Engagement Parameters. That screen is also 
 | F4 then F1, command `"B1"` | `CreateWeaponConfigPanel` | `readForm()`, `WeaponConfigService.create`, `applyWeapon`, show parameters | show parameters |
 | F4 then F2, command `"B2"` | `ModifyWeaponConfigPanel`. Config name drop-down loads one stored configuration | `readForm()`, `WeaponConfigService.update`, `applyWeapon`, show parameters | show parameters |
 | F4 then F3, command `"B3"` | `DeleteWeaponConfigPanel` | read the weapon and config name, show parameters | show parameters |
+| F8 | `ListWeaponConfigPanel`. Config name loads one stored configuration and only displays it | no OK | show parameters |
 
 ---
 
@@ -274,7 +275,17 @@ deleteWeaponForm.getOkButton().addActionListener(new ActionListener() {
 
 ---
 
-## 11. `MotionReadout`
+## 11. `ListWeaponConfigPanel`
+
+`src/main/java/page/ListWeaponConfigPanel.java`
+
+F8. The word beside the blue square is List. Header `LIST OF WEAPON CONFIGURATIONS`. It is the Modify Weapon Configuration form with every field locked. Config name stays a drop-down. A Config list on the right shows the same names.
+
+Choosing a name in either place calls `apply` for that `WeaponConfig`. The fields show the stored values and do not accept edits. There is no OK. Cancel shows Engagement Parameters. If no configuration has been stored, F8 does not open the form.
+
+---
+
+## 12. `MotionReadout`
 
 `src/main/java/page/MotionReadout.java`
 
@@ -284,7 +295,7 @@ The strip above the form. COG is a title. SOG shows knots. DSM shows metres. No 
 
 ---
 
-## 12. `page.model.Engagement`
+## 13. `page.model.Engagement`
 
 `src/main/java/page/model/Engagement.java`
 
@@ -314,7 +325,7 @@ Create OK adds one. Modify OK replaces the one with the same Engagement Name (`g
 
 ---
 
-## 13. `page.model.WeaponConfig`
+## 14. `page.model.WeaponConfig`
 
 `src/main/java/page/model/WeaponConfig.java`
 
@@ -324,7 +335,7 @@ The list of these lives in `WeaponConfigService`, not in the panel. Create adds.
 
 ---
 
-## 14. `EngagementService`
+## 15. `EngagementService`
 
 `src/main/java/page/backend/EngagementService.java`
 
@@ -334,7 +345,7 @@ On the other system this class is `engagementPresenter`. Keep their method names
 
 ---
 
-## 15. `WeaponConfigService`
+## 16. `WeaponConfigService`
 
 `src/main/java/page/backend/WeaponConfigService.java`
 
@@ -344,7 +355,7 @@ On the other system this is `weaponPresenter`. Pass the `WeaponConfig` from `rea
 
 ---
 
-## 16. The form pieces
+## 17. The form pieces
 
 These classes do not store an engagement. They draw one row or one group. The panels above own the data.
 
