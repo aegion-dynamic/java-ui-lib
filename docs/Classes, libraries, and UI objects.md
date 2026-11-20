@@ -30,6 +30,7 @@ This project
     page.CreateEngagementPanel      lower-right form after F1
     page.CreateWeaponConfigPanel      weapon form after F4, then the F1 key
     page.ModifyWeaponConfigPanel      weapon form after F4, then the F2 key
+    page.DeleteWeaponConfigPanel      weapon form after F4, then the F3 key
     page.model.Engagement              the values after they leave the form
     page.backend.EngagementService     the method that receives those values
     page.form.*                        the rows, cards, colours, and hints

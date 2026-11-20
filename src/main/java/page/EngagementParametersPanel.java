@@ -37,6 +37,17 @@ public class EngagementParametersPanel extends JPanel {
     private final JTextField engmType;
     private final OptionGroup weapon;
     private final JTextField configName;
+    private final JTextField initialSpeed;
+    private final JTextField orderedSpeed;
+    private final JTextField orderedDepth;
+    private final JTextField searchSpeed;
+    private final JTextField enbDist;
+    private final JTextField safDist;
+    private final JTextField udl;
+    private final JTextField ldl;
+    private final JTextField safetySonarRange;
+    private final JTextField ash;
+    private final JTextField maxRd;
     private final JComboBox acousticHeadMode;
     private final JComboBox attackMode;
     private final JComboBox wakeSensor;
@@ -52,6 +63,17 @@ public class EngagementParametersPanel extends JPanel {
         engmType = Mono.field(16);
         weapon = new OptionGroup(new String[] {"EHWT WAR", "EHWT EXE"}, 0, 2);
         configName = Mono.field(16);
+        initialSpeed = Mono.field(12);
+        orderedSpeed = Mono.field(12);
+        orderedDepth = Mono.field(12);
+        searchSpeed = Mono.field(12);
+        enbDist = Mono.field(8);
+        safDist = Mono.field(8);
+        udl = Mono.field(8);
+        ldl = Mono.field(8);
+        safetySonarRange = Mono.field(8);
+        ash = Mono.field(8);
+        maxRd = Mono.field(12);
         acousticHeadMode = Mono.combo(new String[] {"Passive", "Simultaneous", "Wake"});
         attackMode = Mono.combo(new String[] {"Sub Surface", "Surface"});
         wakeSensor = Mono.combo(new String[] {"OFF", "ON"});
@@ -75,15 +97,16 @@ public class EngagementParametersPanel extends JPanel {
 
         form.add(banner("PARAMETER CONFIGURATION"));
         form.add(new GroupLabel("TORPEDO TRAJECTORY"));
-        form.add(pad(new FormRow("Initial Speed", Mono.field(12))));
-        form.add(pad(new FormRow("Ordered Speed", Mono.field(12))));
-        form.add(pad(new FormRow("Ordered Depth", Mono.field(12))));
-        form.add(pad(new FormRow("Search Speed", Mono.field(12))));
+        form.add(pad(new FormRow("Initial Speed", initialSpeed)));
+        form.add(pad(new FormRow("Ordered Speed", orderedSpeed)));
+        form.add(pad(new FormRow("Ordered Depth", orderedDepth)));
+        form.add(pad(new FormRow("Search Speed", searchSpeed)));
 
         form.add(new GroupLabel("SAFETY PARAMETERS"));
-        form.add(pad(pair(labeled("Enab dist (m)", Mono.field(8)), labeled("Saf dist (m)", Mono.field(8)))));
-        form.add(pad(pair(labeled("UDL (M)", Mono.field(8)), labeled("LDL (m)", Mono.field(8)))));
-        form.add(pad(new FormRow("MAX DIST", Mono.field(12))));
+        form.add(pad(pair(labeled("Enab dist (m)", enbDist), labeled("Saf dist (m)", safDist))));
+        form.add(pad(pair(labeled("UDL (M)", udl), labeled("LDL (m)", ldl))));
+        form.add(pad(pair(labeled("Sonar Range", safetySonarRange), labeled("ASH", ash))));
+        form.add(pad(new FormRow("MAX DIST", maxRd)));
 
         form.add(new GroupLabel("CAL ENGM PARAMETERS"));
         form.add(pad(pair(labeled("WCse", Mono.field(8)), labeled("Prog CSe", Mono.field(8)))));
@@ -110,7 +133,17 @@ public class EngagementParametersPanel extends JPanel {
     /** Copy the weapon choices onto this screen. This is the stage 6 view. */
     public void applyWeapon(WeaponConfig config) {
         weapon.setSelected(config.getWeapon());
-        configName.setText(config.getConfigName());
+        configName.setText(textOf(config.getConfigName()));
+        text(initialSpeed, config.getInitialSpeed());
+        text(orderedSpeed, config.getOrderedSpeed());
+        text(orderedDepth, config.getOrderedDepth());
+        text(searchSpeed, config.getSearchSpeed());
+        text(enbDist, config.getEnbDist());
+        text(udl, config.getUdl());
+        text(ldl, config.getLdl());
+        text(safetySonarRange, config.getSafetySonarRange());
+        text(ash, config.getAsh());
+        text(maxRd, config.getMaxRd());
         choose(acousticHeadMode, config.getAcousticHeadMode());
         choose(attackMode, config.getAttackMode());
         choose(wakeSensor, config.getWakeGuidance());
@@ -131,6 +164,14 @@ public class EngagementParametersPanel extends JPanel {
 
     public String getGuidanceMode() {
         return selected(guidanceMode);
+    }
+
+    private static void text(JTextField field, String value) {
+        field.setText(textOf(value));
+    }
+
+    private static String textOf(String value) {
+        return value == null ? "" : value;
     }
 
     private static void choose(JComboBox box, String value) {

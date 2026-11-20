@@ -13,6 +13,7 @@ Every OK and every Cancel returns to Engagement Parameters. That screen is also 
 | F4 | swaps the footer words. The blue squares stay F1–F12 | | |
 | F4 then F1, command `"B1"` | `CreateWeaponConfigPanel` | `readForm()`, `WeaponConfigService.create`, `applyWeapon`, show parameters | show parameters |
 | F4 then F2, command `"B2"` | `ModifyWeaponConfigPanel`. Config name drop-down loads one stored configuration | `readForm()`, `WeaponConfigService.update`, `applyWeapon`, show parameters | show parameters |
+| F4 then F3, command `"B3"` | `DeleteWeaponConfigPanel` | read the weapon and config name, show parameters | show parameters |
 
 ---
 
@@ -98,7 +99,7 @@ The first array is the commands (`"F1"` or, after the swap, `"B1"`). The second 
 
 The screen at open, and the screen after every OK and Cancel. It is stage 6. It has no OK button and no listener of its own.
 
-`applyWeapon(WeaponConfig)` writes the weapon choice, the config name, acoustic head mode, attack mode, wake guidance, and guidance mode onto this screen. Create Weapon Configuration OK and Modify Weapon Configuration OK call it, then show this panel.
+`applyWeapon(WeaponConfig)` writes the weapon choice, the config name, torpedo trajectory, and safety parameters onto this screen, then acoustic head mode, attack mode, wake guidance, and guidance mode. Trajectory is Initial Speed, Ordered Speed, Ordered Depth, and Search Speed. Safety is Enab dist from Enb Dist, UDL, LDL, Sonar Range, ASH, and MAX DIST from Max RD. Create Weapon Configuration OK and Modify Weapon Configuration OK call it, then show this panel.
 
 The four attack drop-downs are read with `getAcousticHeadMode()`, `getAttackMode()`, `getWakeSensor()`, and `getGuidanceMode()`. Each returns the selected string, or `""` when nothing is selected.
 
@@ -249,7 +250,31 @@ The name in the list is `getConfigName()`, the Config name typed on Create. If n
 
 ---
 
-## 10. `MotionReadout`
+## 10. `DeleteWeaponConfigPanel`
+
+`src/main/java/page/DeleteWeaponConfigPanel.java`
+
+F3 after the footer swap. The command is `"B3"`. The word beside the blue square is Delete. Header `DELETE WEAPON CONFIG`. Two controls: EHWT WAR / EHWT EXE, with neither selected at first, and Config name, a text field.
+
+`getWeapon()` is the selected radio, or `""` when neither is selected. `setWeapon(String)` selects the radio whose text matches, or clears both. `getConfigName()` and `setConfigName(String)` are the name field. `reset()` clears both.
+
+OK in this sample reads the name, writes it on the blue label, and shows Engagement Parameters. It does not remove the configuration. On the other system the OK listener removes that configuration, then shows the parameters page:
+
+```java
+deleteWeaponForm.getOkButton().addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent event) {
+        weaponPresenter.remove(deleteWeaponForm.getWeapon(), deleteWeaponForm.getConfigName());
+        deleteWeaponForm.setVisible(false);
+        parametersPanel.setVisible(true);
+    }
+});
+```
+
+`remove` finds the `WeaponConfig` whose `getConfigName()` equals that name and takes it out of the list. Cancel shows Engagement Parameters and does not read the form.
+
+---
+
+## 11. `MotionReadout`
 
 `src/main/java/page/MotionReadout.java`
 
@@ -259,7 +284,7 @@ The strip above the form. COG is a title. SOG shows knots. DSM shows metres. No 
 
 ---
 
-## 11. `page.model.Engagement`
+## 12. `page.model.Engagement`
 
 `src/main/java/page/model/Engagement.java`
 
@@ -289,7 +314,7 @@ Create OK adds one. Modify OK replaces the one with the same Engagement Name (`g
 
 ---
 
-## 12. `page.model.WeaponConfig`
+## 13. `page.model.WeaponConfig`
 
 `src/main/java/page/model/WeaponConfig.java`
 
@@ -299,7 +324,7 @@ The list of these lives in `WeaponConfigService`, not in the panel. Create adds.
 
 ---
 
-## 13. `EngagementService`
+## 14. `EngagementService`
 
 `src/main/java/page/backend/EngagementService.java`
 
@@ -309,7 +334,7 @@ On the other system this class is `engagementPresenter`. Keep their method names
 
 ---
 
-## 14. `WeaponConfigService`
+## 15. `WeaponConfigService`
 
 `src/main/java/page/backend/WeaponConfigService.java`
 
@@ -319,7 +344,7 @@ On the other system this is `weaponPresenter`. Pass the `WeaponConfig` from `rea
 
 ---
 
-## 15. The form pieces
+## 16. The form pieces
 
 These classes do not store an engagement. They draw one row or one group. The panels above own the data.
 

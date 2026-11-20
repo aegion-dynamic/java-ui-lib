@@ -33,7 +33,7 @@ import page.model.WeaponConfig;
  * The name drop-down lists engagements already stored. The chosen name fills the form.
  * F3 calls onF3() and shows Delete Engagement.
  * After F4, the first key is command B1. It opens Create Weapon Configuration.
- * OK on that form opens the saved stage 6 screen.
+ * The second key opens Modify Weapon Configuration. The third opens Delete Weapon Config.
  * F4 swaps the footer to a second set of buttons.
  * A second F4 restores the first set. The other methods are empty
  * on purpose: fill those in with the functions from the real project.
@@ -58,7 +58,7 @@ public class FunctionPage extends JFrame {
 
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
     private static final String[] SECOND_TEXT = {
-        "WConfig", "Modify", "Alt 3", "Swap", "Alt 5", "Alt 6",
+        "WConfig", "Modify", "Delete", "Swap", "Alt 5", "Alt 6",
         "Alt 7", "Alt 8", "Alt 9", "Alt 10", "Alt 11", "Alt 12"
     };
 
@@ -75,6 +75,7 @@ public class FunctionPage extends JFrame {
     private DeleteEngagementPanel deleteForm;
     private CreateWeaponConfigPanel weaponForm;
     private ModifyWeaponConfigPanel modifyWeaponForm;
+    private DeleteWeaponConfigPanel deleteWeaponForm;
     private EngagementService backend;
     private WeaponConfigService weaponBackend;
     private FunctionKeyBar footer;
@@ -177,6 +178,7 @@ public class FunctionPage extends JFrame {
         deleteForm = new DeleteEngagementPanel();
         weaponForm = new CreateWeaponConfigPanel();
         modifyWeaponForm = new ModifyWeaponConfigPanel();
+        deleteWeaponForm = new DeleteWeaponConfigPanel();
         try {
             UIManager.setLookAndFeel(previous);
         } catch (Exception ex) {
@@ -278,6 +280,18 @@ public class FunctionPage extends JFrame {
                 showParameters();
             }
         });
+        deleteWeaponForm.getOkButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Delete " + deleteWeaponForm.getConfigName());
+                showParameters();
+            }
+        });
+        deleteWeaponForm.getCancelButton().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                resultLabel.setText("Cancel");
+                showParameters();
+            }
+        });
 
         formSlot.setBackground(DARK);
         formSlot.setPreferredSize(new Dimension(FORM_WIDTH, 400));
@@ -287,6 +301,7 @@ public class FunctionPage extends JFrame {
         formSlot.add(deleteForm, "delete");
         formSlot.add(weaponForm, "wconfig");
         formSlot.add(modifyWeaponForm, "modifyWeapon");
+        formSlot.add(deleteWeaponForm, "deleteWeapon");
         formCards.show(formSlot, "parameters");
 
         JPanel right = new JPanel(new BorderLayout(0, 4));
@@ -428,9 +443,11 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("Modify weapon configuration");
     }
 
-    /** B3. */
+    /** F3 after the key swap. Delete Weapon Config. */
     private void onB3() {
-        resultLabel.setText("B3");
+        deleteWeaponForm.reset();
+        formCards.show(formSlot, "deleteWeapon");
+        resultLabel.setText("Delete weapon config");
     }
 
     /** B5. Slot 4 is F4, the swap, in both sets. */

@@ -15,6 +15,7 @@ public class OptionGroup extends Block {
     private static final long serialVersionUID = 1L;
 
     private final JRadioButton[] buttons;
+    private final ButtonGroup group;
 
     public OptionGroup(String[] choices, int selectedIndex, int columns) {
         super();
@@ -27,7 +28,7 @@ public class OptionGroup extends Block {
         }
         setLayout(new GridLayout(rows, columns, 12, 4));
 
-        ButtonGroup group = new ButtonGroup();
+        group = new ButtonGroup();
         buttons = new JRadioButton[choices.length];
         for (int i = 0; i < choices.length; i++) {
             JRadioButton button = Mono.radio(choices[i]);
@@ -43,8 +44,12 @@ public class OptionGroup extends Block {
     /** Select the choice whose label matches text. No match clears the group. */
     public void setSelected(String text) {
         for (int i = 0; i < buttons.length; i++) {
-            buttons[i].setSelected(text != null && text.equals(buttons[i].getText()));
+            if (text != null && text.equals(buttons[i].getText())) {
+                buttons[i].setSelected(true);
+                return;
+            }
         }
+        group.clearSelection();
     }
 
     /** The text of the selected choice, or an empty string when none is selected. */
