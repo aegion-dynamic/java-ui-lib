@@ -199,19 +199,7 @@ if (engagement == null) {
 }
 ```
 
-OK in this sample reads the number, writes it on the blue label, and shows Engagement Parameters. On the other system the OK listener removes that engagement, then shows the parameters page:
-
-```java
-deleteForm.getOkButton().addActionListener(new ActionListener() {
-    public void actionPerformed(ActionEvent event) {
-        engagementPresenter.remove(deleteForm.getEngNo());
-        deleteForm.setVisible(false);
-        parametersPanel.setVisible(true);
-    }
-});
-```
-
-`remove` finds the `Engagement` whose `getField1()` equals that number and takes it out of the list. The next F3 builds the combo from what remains.
+OK reads Eng Name with `getEngName()` and calls `backend.deleteByName`. That name is the engagement name, `getField2()`. The matching engagement is removed, then Engagement Parameters is shown. A name that is not stored leaves the list unchanged. Cancel shows Engagement Parameters and does not read the form.
 
 ---
 
@@ -265,19 +253,7 @@ F3 after the footer swap. The command is `"B3"`. The word beside the blue square
 
 `getWeapon()` is the selected radio, or `""` when neither is selected. `setWeapon(String)` selects the radio whose text matches, or clears both. `getConfigName()` and `setConfigName(String)` are the name field. `reset()` clears both.
 
-OK in this sample reads the name, writes it on the blue label, and shows Engagement Parameters. It does not remove the configuration. On the other system the OK listener removes that configuration, then shows the parameters page:
-
-```java
-deleteWeaponForm.getOkButton().addActionListener(new ActionListener() {
-    public void actionPerformed(ActionEvent event) {
-        weaponPresenter.remove(deleteWeaponForm.getWeapon(), deleteWeaponForm.getConfigName());
-        deleteWeaponForm.setVisible(false);
-        parametersPanel.setVisible(true);
-    }
-});
-```
-
-`remove` finds the `WeaponConfig` whose `getConfigName()` equals that name and takes it out of the list. Cancel shows Engagement Parameters and does not read the form.
+OK reads Config name with `getConfigName()` and calls `weaponBackend.deleteByName`. That removes the stored configuration with the same name, then shows Engagement Parameters. A name that is not stored leaves the list unchanged. Cancel shows Engagement Parameters and does not read the form.
 
 ---
 
@@ -337,7 +313,7 @@ public Engagement findByName(String name) {
 }
 ```
 
-Create OK adds one. Modify OK replaces the one with the same Engagement Name (`getField2()`). Delete OK, on their presenter, removes the one whose Eng No (`getField1()`) matches.
+Create OK adds one. Modify OK replaces the one with the same Engagement Name (`getField2()`). Delete OK calls `deleteByName` with the Eng Name typed on the delete form. That name is `getField2()`.
 
 ---
 

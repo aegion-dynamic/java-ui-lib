@@ -35,6 +35,25 @@ public class EngagementService {
         lastCreated = engagement;
     }
 
+    /**
+     * Remove the engagement whose name matches. The name is getField2(),
+     * the Eng Name typed on the delete form.
+     * Returns true when one was removed.
+     */
+    public boolean deleteByName(String name) {
+        for (int i = 0; i < engagements.size(); i++) {
+            Engagement stored = (Engagement) engagements.get(i);
+            if (sameName(stored, name)) {
+                engagements.remove(i);
+                if (lastCreated == stored) {
+                    lastCreated = null;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Engagement getLastCreated() {
         return lastCreated;
     }

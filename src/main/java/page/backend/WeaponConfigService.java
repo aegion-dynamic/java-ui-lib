@@ -29,6 +29,21 @@ public class WeaponConfigService {
         configs.add(config);
     }
 
+    /**
+     * Remove the configuration whose config name matches.
+     * Returns true when one was removed.
+     */
+    public boolean deleteByName(String name) {
+        for (int i = 0; i < configs.size(); i++) {
+            WeaponConfig stored = (WeaponConfig) configs.get(i);
+            if (sameName(stored, name)) {
+                configs.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public WeaponConfig findByName(String name) {
         for (int i = 0; i < configs.size(); i++) {
             WeaponConfig stored = (WeaponConfig) configs.get(i);

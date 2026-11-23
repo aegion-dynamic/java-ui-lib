@@ -257,7 +257,9 @@ public class FunctionPage extends JFrame {
         });
         deleteForm.getOkButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-                resultLabel.setText("Delete " + deleteForm.getEngNo());
+                String name = deleteForm.getEngName();
+                backend.deleteByName(name);
+                resultLabel.setText("Delete " + name);
                 showParameters();
             }
         });
@@ -310,7 +312,9 @@ public class FunctionPage extends JFrame {
         });
         deleteWeaponForm.getOkButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-                resultLabel.setText("Delete " + deleteWeaponForm.getConfigName());
+                String name = deleteWeaponForm.getConfigName();
+                weaponBackend.deleteByName(name);
+                resultLabel.setText("Delete " + name);
                 showParameters();
             }
         });
