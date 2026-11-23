@@ -245,20 +245,10 @@ public class CreateWeaponConfigPanel extends JPanel {
                 nameList.addItem(names[i]);
             }
         }
-        namesChanged(names);
         filling = false;
         if (names != null && names.length > 0) {
             nameList.setSelectedIndex(0);
         }
-    }
-
-    /** Called while setNames is filling the drop-down. The list form replaces this. */
-    protected void namesChanged(String[] names) {
-    }
-
-    /** Select that config name in the drop-down. */
-    public void setSelectedName(String name) {
-        nameList.setSelectedItem(name);
     }
 
     public String getSelectedName() {

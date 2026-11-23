@@ -4,11 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -36,6 +38,7 @@ import page.model.WeaponConfig;
  * The second key opens Modify Weapon Configuration. The third opens Delete Weapon Config.
  * F7 opens List of Engagements. The chosen name fills the Create Engagement fields, and the fields stay read-only.
  * F8 opens List of Weapon Configurations. The chosen name fills the fields, and the fields stay read-only.
+ * The drop-down in the top bar chooses Eng or WC. Eng is this screen. WC is the depth-window page.
  * F4 swaps the footer to a second set of buttons.
  * A second F4 restores the first set. The other methods are empty
  * on purpose: fill those in with the functions from the real project.
@@ -56,6 +59,12 @@ public class FunctionPage extends JFrame {
     private static final String[] FIRST_TEXT = {
         "Create", "Modify", "Delete", "Swap", "Op 5", "Op 6",
         "Engs", "List", "Op 9", "Op 10", "Op 11", "Op 12"
+    };
+
+    /** Words beside the blue squares on the WC page. */
+    private static final String[] WC_TEXT = {
+        "CFM", "BG RIDER IN", "BG RIDER OUT", "OFFSET", "MANU", "--------",
+        "TDISP", "--------", "--------", "Send WDATA", "TCCM", "WAKE"
     };
 
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
@@ -84,6 +93,10 @@ public class FunctionPage extends JFrame {
     private WeaponConfigService weaponBackend;
     private FunctionKeyBar footer;
     private boolean secondSet;
+    private boolean wcPage;
+    private final CardLayout screenCards = new CardLayout();
+    private final JPanel screenSlot = new JPanel(screenCards);
+    private final JComboBox pageChoice = new JComboBox(new String[] {"Eng", "WC"});
 
     /**
      * One listener for every function button.
@@ -92,6 +105,9 @@ public class FunctionPage extends JFrame {
     private final ActionListener functionListener = new ActionListener() {
         public void actionPerformed(ActionEvent event) {
             String key = event.getActionCommand();
+            if (wcPage) {
+                return;
+            }
 
             if ("F4".equals(key)) {
                 onF4();
@@ -149,9 +165,15 @@ public class FunctionPage extends JFrame {
         JPanel page = new JPanel(new BorderLayout(0, 4));
         page.setBackground(DARK);
 
-        JPanel topBar = new JPanel();
+        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 4));
         topBar.setBackground(BLUE);
-        topBar.setPreferredSize(new Dimension(100, 36));
+        topBar.setPreferredSize(new Dimension(100, 40));
+        JLabel pageLabel = new JLabel("Page");
+        pageLabel.setForeground(Color.WHITE);
+        pageLabel.setFont(new Font("Dialog", Font.BOLD, 14));
+        pageChoice.setFont(new Font("Dialog", Font.PLAIN, 14));
+        topBar.add(pageLabel);
+        topBar.add(pageChoice);
 
         JPanel blue = new JPanel(new BorderLayout());
         blue.setBackground(BLUE);
@@ -358,13 +380,23 @@ public class FunctionPage extends JFrame {
         stage.add(left, BorderLayout.CENTER);
         stage.add(right, BorderLayout.EAST);
 
+        screenSlot.setOpaque(false);
+        screenSlot.add(stage, "eng");
+        screenSlot.add(new WcPage(), "wc");
+        screenCards.show(screenSlot, "eng");
+
         page.add(topBar, BorderLayout.NORTH);
-        page.add(stage, BorderLayout.CENTER);
+        page.add(screenSlot, BorderLayout.CENTER);
 
         /* bar height, button width, button height — change these to fit the other screen */
         footer = new FunctionKeyBar(64, 96, 40, functionListener);
         footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
         page.add(footer, BorderLayout.SOUTH);
+        pageChoice.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                showChosenPage();
+            }
+        });
 
         setContentPane(page);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -401,6 +433,24 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("Delete engagement");
     }
 
+    /** The top drop-down. Eng is the form screen. WC is the depth-window screen. */
+    private void showChosenPage() {
+        Object item = pageChoice.getSelectedItem();
+        if ("WC".equals(item)) {
+            wcPage = true;
+            screenCards.show(screenSlot, "wc");
+            footer.setLabels(FunctionKeyBar.KEYS, WC_TEXT);
+        } else {
+            wcPage = false;
+            screenCards.show(screenSlot, "eng");
+            if (secondSet) {
+                footer.setLabels(SECOND_KEYS, SECOND_TEXT);
+            } else {
+                footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
+            }
+        }
+    }
+
     /** The page that is showing when the window opens, and after OK or Cancel. */
     private void showParameters() {
         formCards.show(formSlot, "parameters");
@@ -432,7 +482,7 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("F6");
     }
 
-    /** F7. List of engagements. The name drop-down and the Name list only display. */
+    /** F7. List of engagements. The name drop-down loads one engagement for display. */
     private void onF7() {
         String[] names = backend.names();
         if (names.length == 0) {
@@ -448,7 +498,7 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("List engagement");
     }
 
-    /** F8. List of weapon configurations. The name drop-down and the Config list only display. */
+    /** F8. List of weapon configurations. The name drop-down loads one configuration for display. */
     private void onF8() {
         String[] names = weaponBackend.names();
         if (names.length == 0) {

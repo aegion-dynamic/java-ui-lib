@@ -280,9 +280,9 @@ deleteWeaponForm.getOkButton().addActionListener(new ActionListener() {
 
 `src/main/java/page/ListWeaponConfigPanel.java`
 
-F8. The word beside the blue square is List. Header `LIST OF WEAPON CONFIGURATIONS`. It is the Modify Weapon Configuration form with every field locked. Config name stays a drop-down. A Config list on the right shows the same names.
+F8. The word beside the blue square is List. Header `LIST OF WEAPON CONFIGURATIONS`. It is the Modify Weapon Configuration form with every field locked. Config name stays a drop-down.
 
-Choosing a name in either place calls `apply` for that `WeaponConfig`. The fields show the stored values and do not accept edits. There is no OK. Cancel shows Engagement Parameters. If no configuration has been stored, F8 does not open the form.
+Choosing a name calls `apply` for that `WeaponConfig`. The fields show the stored values and do not accept edits. There is no OK. Cancel shows Engagement Parameters. If no configuration has been stored, F8 does not open the form.
 
 ---
 
@@ -290,9 +290,9 @@ Choosing a name in either place calls `apply` for that `WeaponConfig`. The field
 
 `src/main/java/page/ListEngagementPanel.java`
 
-F7. The word beside the blue square is Engs. Header `LIST OF ENGAGEMENTS`. It is the Create Engagement form with every field locked. Engagement Name stays a drop-down. A Name list on the right shows the same names.
+F7. The word beside the blue square is Engs. Header `LIST OF ENGAGEMENTS`. It is the Create Engagement form with every field locked. Engagement Name stays a drop-down.
 
-Choosing a name in either place calls `apply` for that `Engagement`. The fields show the stored values and do not accept edits. There is no OK. Cancel shows Engagement Parameters. If no engagement has been stored, F7 does not open the form.
+Choosing a name calls `apply` for that `Engagement`. The fields show the stored values and do not accept edits. There is no OK. Cancel shows Engagement Parameters. If no engagement has been stored, F7 does not open the form.
 
 ---
 
