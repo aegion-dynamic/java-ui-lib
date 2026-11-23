@@ -107,7 +107,7 @@ Cancel calls that same show-engagement action. It does not call `readForm()`. OK
 |---|---|
 | Initial Speed | 24, 30, 35, 40, 45, 50 |
 | ASH | ON, OFF |
-| Acoustic Head Mode | Simultaneous, Wake |
+| Acoustic Head Mode | Passive, Simultaneous, Wake |
 | Attack Mode | Sub Surface, Surface |
 | Wake Guidance | ON, OFF |
 | Guidance Mode | Bg Rider Out, CCM, TCCM, Self Guided |

@@ -51,7 +51,7 @@ public class CreateWeaponConfigPanel extends JPanel {
     private static final Speed[] SPEEDS = {
         new Speed(24), new Speed(30), new Speed(35), new Speed(40), new Speed(45), new Speed(50)
     };
-    private static final String[] ACOUSTIC = {"Simultaneous", "Wake"};
+    private static final String[] ACOUSTIC = {"Passive", "Simultaneous", "Wake"};
     private static final String[] HOMING = {"Pro Navigation", "Intercept"};
 
     private final OptionGroup weapon;
@@ -213,7 +213,7 @@ public class CreateWeaponConfigPanel extends JPanel {
         config.setWeapon(WeaponType.fromLabel(weapon.getSelected()));
         config.setConfigName(getConfigName());
         config.setInitialSpeed((Speed) chosen(initialSpeed));
-        config.setOrderedSpeed(orderedSpeed.getText());
+        config.setOrderedSpeed(Speed.parse(orderedSpeed.getText()));
         config.setOrderedDepth(Depth.parse(orderedDepth.getText()));
         config.setSearchSpeed(Speed.parse(searchSpeed.getText()));
         config.setEnbDist(Distance.parse(enbDist.getText()));
@@ -275,7 +275,7 @@ public class CreateWeaponConfigPanel extends JPanel {
             configName.setText(config.getConfigName());
         }
         showChoice(initialSpeed, config.getInitialSpeed());
-        orderedSpeed.setText(config.getOrderedSpeed());
+        orderedSpeed.setText(written(config.getOrderedSpeed()));
         orderedDepth.setText(written(config.getOrderedDepth()));
         searchSpeed.setText(written(config.getSearchSpeed()));
         enbDist.setText(written(config.getEnbDist()));

@@ -21,12 +21,21 @@ import page.form.FormStack;
 import page.form.GroupLabel;
 import page.form.Mono;
 import page.form.OptionGroup;
+import page.model.AcousticHeadMode;
+import page.model.Depth;
+import page.model.Distance;
+import page.model.GuidanceMode;
+import page.model.InternalGuidanceMode;
+import page.model.Speed;
+import page.model.TargetType;
 import page.model.WeaponConfig;
+import page.model.WeaponType;
 
 /**
  * Engagement Parameters. This is the screen shown when the window opens.
- * Acoustic head mode, Attack mode, Wake Sensor, and Guidance Mode are
- * drop-downs. Their lists are the choices from the option popup.
+ * ASH is ON or OFF. Acoustic head mode is Passive, Simultaneous, or Wake.
+ * Attack mode and target Type are TargetType. Wake Sensor is GuidanceMode.
+ * Guidance Mode is InternalGuidanceMode.
  */
 public class EngagementParametersPanel extends JPanel {
 
@@ -46,7 +55,7 @@ public class EngagementParametersPanel extends JPanel {
     private final JTextField udl;
     private final JTextField ldl;
     private final JTextField safetySonarRange;
-    private final JTextField ash;
+    private final JComboBox ash;
     private final JTextField maxRd;
     private final JComboBox acousticHeadMode;
     private final JComboBox attackMode;
@@ -72,13 +81,19 @@ public class EngagementParametersPanel extends JPanel {
         udl = Mono.field(8);
         ldl = Mono.field(8);
         safetySonarRange = Mono.field(8);
-        ash = Mono.field(8);
+        ash = Mono.combo(AcousticHeadMode.values());
+        ash.setSelectedIndex(-1);
         maxRd = Mono.field(12);
         acousticHeadMode = Mono.combo(new String[] {"Passive", "Simultaneous", "Wake"});
-        attackMode = Mono.combo(new String[] {"Sub Surface", "Surface"});
-        wakeSensor = Mono.combo(new String[] {"OFF", "ON"});
-        guidanceMode = Mono.combo(new String[] {"Bg Rider Out", "CCM", "TCCM"});
-        type = Mono.combo(new String[] {""});
+        attackMode = Mono.combo(TargetType.values());
+        wakeSensor = Mono.combo(new GuidanceMode[] {GuidanceMode.OFF, GuidanceMode.ON});
+        guidanceMode = Mono.combo(new InternalGuidanceMode[] {
+            InternalGuidanceMode.BG_RIDER_OUT,
+            InternalGuidanceMode.CCM,
+            InternalGuidanceMode.TCCM
+        });
+        type = Mono.combo(TargetType.values());
+        type.setSelectedIndex(-1);
 
         add(scroller(form()), BorderLayout.CENTER);
     }
@@ -135,35 +150,88 @@ public class EngagementParametersPanel extends JPanel {
         weapon.setSelected(written(config.getWeapon()));
         configName.setText(textOf(config.getConfigName()));
         text(initialSpeed, written(config.getInitialSpeed()));
-        text(orderedSpeed, config.getOrderedSpeed());
+        text(orderedSpeed, written(config.getOrderedSpeed()));
         text(orderedDepth, written(config.getOrderedDepth()));
         text(searchSpeed, written(config.getSearchSpeed()));
         text(enbDist, written(config.getEnbDist()));
         text(udl, written(config.getUdl()));
         text(ldl, written(config.getLdl()));
         text(safetySonarRange, config.getAttackSonarRange());
-        text(ash, written(config.getAsh()));
+        choose(ash, config.getAsh());
         text(maxRd, written(config.getMaxRd()));
         choose(acousticHeadMode, config.getAcousticHeadMode());
-        choose(attackMode, written(config.getAttackMode()));
-        choose(wakeSensor, written(config.getWakeGuidance()));
-        choose(guidanceMode, written(config.getGuidanceMode()));
+        choose(attackMode, config.getAttackMode());
+        choose(wakeSensor, config.getWakeGuidance());
+        choose(guidanceMode, config.getGuidanceMode());
+    }
+
+    public WeaponType getWeapon() {
+        return WeaponType.fromLabel(weapon.getSelected());
+    }
+
+    public Speed getInitialSpeed() {
+        return Speed.parse(initialSpeed.getText());
+    }
+
+    public Speed getOrderedSpeed() {
+        return Speed.parse(orderedSpeed.getText());
+    }
+
+    public Depth getOrderedDepth() {
+        return Depth.parse(orderedDepth.getText());
+    }
+
+    public Speed getSearchSpeed() {
+        return Speed.parse(searchSpeed.getText());
+    }
+
+    public Distance getEnbDist() {
+        return Distance.parse(enbDist.getText());
+    }
+
+    public Distance getSafDist() {
+        return Distance.parse(safDist.getText());
+    }
+
+    public Distance getUdl() {
+        return Distance.parse(udl.getText());
+    }
+
+    public Distance getLdl() {
+        return Distance.parse(ldl.getText());
+    }
+
+    public Distance getSonarRange() {
+        return Distance.parse(safetySonarRange.getText());
+    }
+
+    public Distance getMaxRd() {
+        return Distance.parse(maxRd.getText());
+    }
+
+    public AcousticHeadMode getAsh() {
+        return (AcousticHeadMode) chosen(ash);
     }
 
     public String getAcousticHeadMode() {
-        return selected(acousticHeadMode);
+        Object item = chosen(acousticHeadMode);
+        return item == null ? "" : item.toString();
     }
 
-    public String getAttackMode() {
-        return selected(attackMode);
+    public TargetType getAttackMode() {
+        return (TargetType) chosen(attackMode);
     }
 
-    public String getWakeSensor() {
-        return selected(wakeSensor);
+    public GuidanceMode getWakeSensor() {
+        return (GuidanceMode) chosen(wakeSensor);
     }
 
-    public String getGuidanceMode() {
-        return selected(guidanceMode);
+    public InternalGuidanceMode getGuidanceMode() {
+        return (InternalGuidanceMode) chosen(guidanceMode);
+    }
+
+    public TargetType getTargetType() {
+        return (TargetType) chosen(type);
     }
 
     private static void text(JTextField field, String value) {
@@ -178,19 +246,16 @@ public class EngagementParametersPanel extends JPanel {
         return value == null ? "" : value.toString();
     }
 
-    private static void choose(JComboBox box, String value) {
-        if (value == null || value.length() == 0) {
+    private static void choose(JComboBox box, Object value) {
+        if (value == null || "".equals(value)) {
+            box.setSelectedIndex(-1);
             return;
         }
         box.setSelectedItem(value);
     }
 
-    private static String selected(JComboBox box) {
-        Object item = box.getSelectedItem();
-        if (item == null) {
-            return "";
-        }
-        return item.toString();
+    private static Object chosen(JComboBox box) {
+        return box.getSelectedItem();
     }
 
     private static JScrollPane scroller(FormStack form) {

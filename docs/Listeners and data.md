@@ -103,7 +103,7 @@ The screen at open, and the screen after every OK and Cancel. It is stage 6. It 
 
 `applyWeapon(WeaponConfig)` writes the weapon choice, the config name, torpedo trajectory, and safety parameters onto this screen, then acoustic head mode, attack mode, wake guidance, and guidance mode. Trajectory is Initial Speed, Ordered Speed, Ordered Depth, and Search Speed. Safety is Enab dist from Enb Dist, UDL, LDL, ASH, and MAX DIST from Max RD. The one sonar range, from Attack, is written into the Sonar Range box on this screen. Create Weapon Configuration OK and Modify Weapon Configuration OK call it, then show this panel.
 
-The four attack drop-downs are read with `getAcousticHeadMode()`, `getAttackMode()`, `getWakeSensor()`, and `getGuidanceMode()`. Each returns the selected string, or `""` when nothing is selected.
+The attack drop-downs are read with `getAcousticHeadMode()` (Passive, Simultaneous, or Wake), `getAttackMode()` (`TargetType`), `getWakeSensor()` (`GuidanceMode`), and `getGuidanceMode()` (`InternalGuidanceMode`). ASH uses `getAsh()` (`AcousticHeadMode`). An unselected object box returns `null`. An unselected text box returns `""`.
 
 ---
 
@@ -230,17 +230,18 @@ OK stores it with `WeaponConfigService.create`, calls `parameters.applyWeapon(co
 | EHWT WAR / EHWT EXE | `WeaponType` `getWeapon` / `setWeapon` |
 | Config name | `String` `getConfigName` / `setConfigName` |
 | Initial Speed, Search Speed | `Speed` in knots. `getInitialSpeed`, `getSearchSpeed` |
-| Ordered Speed | `String` `getOrderedSpeed` |
+| Ordered Speed | `Speed` in knots. `getOrderedSpeed` |
 | Ordered Depth | `Depth` in metres. `getOrderedDepth` |
 | Enb Dist, UDL, LDL, Max RD | `Distance` in metres, a float. `getEnbDist`, `getUdl`, `getLdl`, `getMaxRd` |
 | ASH | `AcousticHeadMode` `getAsh`. ON or OFF |
-| Acoustic Head Mode, Sonar Range, Homing Mode | still text. Sonar Range is only on Attack |
+| Acoustic Head Mode | text `getAcousticHeadMode`. Passive, Simultaneous, or Wake |
+| Sonar Range, Homing Mode | still text. Sonar Range is only on Attack |
 | Attack Mode | `TargetType` `getAttackMode` |
 | Wake Guidance | `GuidanceMode` `getWakeGuidance`. ON or OFF |
 | Guidance Mode | `InternalGuidanceMode` `getGuidanceMode` |
 | WC Comments | `getComments` / `setComments` |
 
-Drop-down lists: Initial Speed is 24, 30, 35, 40, 45, 50 knots. ASH (`AcousticHeadMode`) and Wake Guidance (`GuidanceMode`) are ON, OFF. Acoustic Head Mode is still the text Simultaneous or Wake. Attack Mode (`TargetType`) is Sub Surface, Surface. Guidance Mode (`InternalGuidanceMode`) is Bg Rider Out, CCM, TCCM, Self Guided. Homing Mode is Pro Navigation, Intercept. An untouched choice is stored as `null`. An untouched text drop-down is stored as `""`.
+Drop-down lists: Initial Speed is 24, 30, 35, 40, 45, 50 knots. ASH (`AcousticHeadMode`) is ON, OFF. Acoustic Head Mode is Passive, Simultaneous, Wake. Wake Guidance (`GuidanceMode`) is ON, OFF. Attack Mode (`TargetType`) is Sub Surface, Surface. Guidance Mode (`InternalGuidanceMode`) is Bg Rider Out, CCM, TCCM, Self Guided. Homing Mode is Pro Navigation, Intercept. An untouched choice is stored as `null`. An untouched text drop-down is stored as `""`.
 
 ---
 

@@ -3,15 +3,15 @@ package page.model;
 /**
  * One weapon configuration.
  * Choices and measures use the same kinds of values as the other system.
- * Config name, ordered speed, the acoustic-head drop-down, homing mode,
- * sonar range, and comments are still text. No Swing types.
+ * Config name, acoustic head mode, homing mode, sonar range, and comments are still text.
+ * No Swing types.
  */
 public class WeaponConfig {
 
     private WeaponType weapon;
     private String configName = "";
     private Speed initialSpeed;
-    private String orderedSpeed = "";
+    private Speed orderedSpeed;
     private Depth orderedDepth;
     private Speed searchSpeed;
     private Distance enbDist;
@@ -51,12 +51,12 @@ public class WeaponConfig {
         this.initialSpeed = initialSpeed;
     }
 
-    public String getOrderedSpeed() {
+    public Speed getOrderedSpeed() {
         return orderedSpeed;
     }
 
-    public void setOrderedSpeed(String orderedSpeed) {
-        this.orderedSpeed = orderedSpeed == null ? "" : orderedSpeed;
+    public void setOrderedSpeed(Speed orderedSpeed) {
+        this.orderedSpeed = orderedSpeed;
     }
 
     public Depth getOrderedDepth() {
@@ -115,7 +115,7 @@ public class WeaponConfig {
         this.maxRd = maxRd;
     }
 
-    /** The Acoustic Head Mode drop-down. Simultaneous or Wake. Still text. */
+    /** Acoustic Head Mode. Passive, Simultaneous, or Wake. */
     public String getAcousticHeadMode() {
         return acousticHeadMode;
     }
