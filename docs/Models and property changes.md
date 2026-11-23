@@ -65,7 +65,7 @@ weaponPresenter.save(saved);
 parameters.copyFrom(saved);
 ```
 
-`EngagementParametersPanel.applyWeapon` is this copy in the sample. It writes weapon, config name, the four torpedo trajectory fields, the safety fields (Enb Dist, Sonar Range, UDL, LDL, ASH, Max RD), acoustic head mode, attack mode, wake guidance, and guidance mode.
+`EngagementParametersPanel.applyWeapon` is this copy in the sample. It writes weapon, config name, the four torpedo trajectory fields, the safety fields (Enb Dist, UDL, LDL, ASH, Max RD), the attack sonar range, acoustic head mode, attack mode, wake guidance, and guidance mode.
 
 A full copy makes a second `WeaponConfig` so the form and the stored row are separate objects:
 

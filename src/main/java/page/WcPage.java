@@ -2,10 +2,15 @@ package page;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -71,18 +76,7 @@ public class WcPage extends JPanel {
         stack.add(gap());
         stack.add(measure("DSM", "------m"));
         stack.add(gap());
-        stack.add(band(CYAN, INK, "Gauges", true));
-        stack.add(gap());
-        stack.add(band(GREEN, Color.WHITE, "OS WIRE", false));
-        stack.add(gap());
-        stack.add(band(GREEN, Color.WHITE, "Weapon Wire", false));
-        stack.add(gap());
-        stack.add(band(GREEN, Color.WHITE, "Battery Automony", false));
-        stack.add(gap());
-        stack.add(ends("OS/WpnD", "Wpn/TgLD"));
-        stack.add(gap());
-        stack.add(band(GREEN, Color.WHITE, "", false));
-        stack.add(gap());
+        stack.add(gauges());
         stack.add(band(CYAN, INK, "Torpedo Trajectory - Tube:02", true));
         stack.add(gap());
         stack.add(band(CYAN, INK, "Torpedo Parameters", true));
@@ -91,6 +85,56 @@ public class WcPage extends JPanel {
 
         column.add(stack, BorderLayout.NORTH);
         return column;
+    }
+
+    /**
+     * Gauges is a drop-down. The cyan bar opens and closes the green rows.
+     * It starts open, which is how the screen shows them.
+     */
+    private JPanel gauges() {
+        final JPanel body = new JPanel();
+        body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.setOpaque(false);
+        body.add(gap());
+        body.add(band(GREEN, Color.WHITE, "OS WIRE", false));
+        body.add(gap());
+        body.add(band(GREEN, Color.WHITE, "Weapon Wire", false));
+        body.add(gap());
+        body.add(band(GREEN, Color.WHITE, "Battery Automony", false));
+        body.add(gap());
+        body.add(ends("OS/WpnD", "Wpn/TgLD"));
+        body.add(gap());
+        body.add(band(GREEN, Color.WHITE, "", false));
+        body.add(gap());
+
+        JPanel header = band(CYAN, INK, "Gauges", true);
+        header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        MouseAdapter toggle = new MouseAdapter() {
+            public void mousePressed(MouseEvent event) {
+                body.setVisible(!body.isVisible());
+                revalidate();
+                repaint();
+            }
+        };
+        listen(header, toggle);
+
+        JPanel block = new JPanel();
+        block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
+        block.setOpaque(false);
+        block.setAlignmentX(0f);
+        block.add(header);
+        block.add(body);
+        return block;
+    }
+
+    private static void listen(Component component, MouseAdapter toggle) {
+        component.addMouseListener(toggle);
+        if (component instanceof Container) {
+            Component[] children = ((Container) component).getComponents();
+            for (int i = 0; i < children.length; i++) {
+                listen(children[i], toggle);
+            }
+        }
     }
 
     private static JPanel band(Color background, Color ink, String text, boolean arrow) {

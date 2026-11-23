@@ -132,22 +132,22 @@ public class EngagementParametersPanel extends JPanel {
 
     /** Copy the weapon choices onto this screen. This is the stage 6 view. */
     public void applyWeapon(WeaponConfig config) {
-        weapon.setSelected(config.getWeapon());
+        weapon.setSelected(written(config.getWeapon()));
         configName.setText(textOf(config.getConfigName()));
-        text(initialSpeed, config.getInitialSpeed());
+        text(initialSpeed, written(config.getInitialSpeed()));
         text(orderedSpeed, config.getOrderedSpeed());
-        text(orderedDepth, config.getOrderedDepth());
-        text(searchSpeed, config.getSearchSpeed());
-        text(enbDist, config.getEnbDist());
-        text(udl, config.getUdl());
-        text(ldl, config.getLdl());
-        text(safetySonarRange, config.getSafetySonarRange());
-        text(ash, config.getAsh());
-        text(maxRd, config.getMaxRd());
+        text(orderedDepth, written(config.getOrderedDepth()));
+        text(searchSpeed, written(config.getSearchSpeed()));
+        text(enbDist, written(config.getEnbDist()));
+        text(udl, written(config.getUdl()));
+        text(ldl, written(config.getLdl()));
+        text(safetySonarRange, config.getAttackSonarRange());
+        text(ash, written(config.getAsh()));
+        text(maxRd, written(config.getMaxRd()));
         choose(acousticHeadMode, config.getAcousticHeadMode());
-        choose(attackMode, config.getAttackMode());
-        choose(wakeSensor, config.getWakeGuidance());
-        choose(guidanceMode, config.getGuidanceMode());
+        choose(attackMode, written(config.getAttackMode()));
+        choose(wakeSensor, written(config.getWakeGuidance()));
+        choose(guidanceMode, written(config.getGuidanceMode()));
     }
 
     public String getAcousticHeadMode() {
@@ -172,6 +172,10 @@ public class EngagementParametersPanel extends JPanel {
 
     private static String textOf(String value) {
         return value == null ? "" : value;
+    }
+
+    private static String written(Object value) {
+        return value == null ? "" : value.toString();
     }
 
     private static void choose(JComboBox box, String value) {

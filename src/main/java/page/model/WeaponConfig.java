@@ -1,36 +1,37 @@
 package page.model;
 
 /**
- * Plain data from Create Weapon Configuration.
- * No Swing types. Stage 6 and the backend receive this object, not the panel.
+ * One weapon configuration.
+ * Choices and measures use the same kinds of values as the other system.
+ * Config name, ordered speed, the acoustic-head drop-down, homing mode,
+ * sonar range, and comments are still text. No Swing types.
  */
 public class WeaponConfig {
 
-    private String weapon = "";
+    private WeaponType weapon;
     private String configName = "";
-    private String initialSpeed = "";
+    private Speed initialSpeed;
     private String orderedSpeed = "";
-    private String orderedDepth = "";
-    private String searchSpeed = "";
-    private String enbDist = "";
-    private String safetySonarRange = "";
-    private String udl = "";
-    private String ldl = "";
-    private String ash = "";
-    private String maxRd = "";
+    private Depth orderedDepth;
+    private Speed searchSpeed;
+    private Distance enbDist;
+    private Distance udl;
+    private Distance ldl;
+    private AcousticHeadMode ash;
+    private Distance maxRd;
     private String acousticHeadMode = "";
     private String attackSonarRange = "";
-    private String attackMode = "";
-    private String wakeGuidance = "";
-    private String guidanceMode = "";
+    private TargetType attackMode;
+    private GuidanceMode wakeGuidance;
+    private InternalGuidanceMode guidanceMode;
     private String homingMode = "";
     private String comments = "";
 
-    public String getWeapon() {
+    public WeaponType getWeapon() {
         return weapon;
     }
 
-    public void setWeapon(String weapon) {
+    public void setWeapon(WeaponType weapon) {
         this.weapon = weapon;
     }
 
@@ -39,14 +40,14 @@ public class WeaponConfig {
     }
 
     public void setConfigName(String configName) {
-        this.configName = configName;
+        this.configName = configName == null ? "" : configName;
     }
 
-    public String getInitialSpeed() {
+    public Speed getInitialSpeed() {
         return initialSpeed;
     }
 
-    public void setInitialSpeed(String initialSpeed) {
+    public void setInitialSpeed(Speed initialSpeed) {
         this.initialSpeed = initialSpeed;
     }
 
@@ -55,110 +56,104 @@ public class WeaponConfig {
     }
 
     public void setOrderedSpeed(String orderedSpeed) {
-        this.orderedSpeed = orderedSpeed;
+        this.orderedSpeed = orderedSpeed == null ? "" : orderedSpeed;
     }
 
-    public String getOrderedDepth() {
+    public Depth getOrderedDepth() {
         return orderedDepth;
     }
 
-    public void setOrderedDepth(String orderedDepth) {
+    public void setOrderedDepth(Depth orderedDepth) {
         this.orderedDepth = orderedDepth;
     }
 
-    public String getSearchSpeed() {
+    public Speed getSearchSpeed() {
         return searchSpeed;
     }
 
-    public void setSearchSpeed(String searchSpeed) {
+    public void setSearchSpeed(Speed searchSpeed) {
         this.searchSpeed = searchSpeed;
     }
 
-    public String getEnbDist() {
+    public Distance getEnbDist() {
         return enbDist;
     }
 
-    public void setEnbDist(String enbDist) {
+    public void setEnbDist(Distance enbDist) {
         this.enbDist = enbDist;
     }
 
-    public String getSafetySonarRange() {
-        return safetySonarRange;
-    }
-
-    public void setSafetySonarRange(String safetySonarRange) {
-        this.safetySonarRange = safetySonarRange;
-    }
-
-    public String getUdl() {
+    public Distance getUdl() {
         return udl;
     }
 
-    public void setUdl(String udl) {
+    public void setUdl(Distance udl) {
         this.udl = udl;
     }
 
-    public String getLdl() {
+    public Distance getLdl() {
         return ldl;
     }
 
-    public void setLdl(String ldl) {
+    public void setLdl(Distance ldl) {
         this.ldl = ldl;
     }
 
-    public String getAsh() {
+    public AcousticHeadMode getAsh() {
         return ash;
     }
 
-    public void setAsh(String ash) {
+    public void setAsh(AcousticHeadMode ash) {
         this.ash = ash;
     }
 
-    public String getMaxRd() {
+    public Distance getMaxRd() {
         return maxRd;
     }
 
-    public void setMaxRd(String maxRd) {
+    public void setMaxRd(Distance maxRd) {
         this.maxRd = maxRd;
     }
 
+    /** The Acoustic Head Mode drop-down. Simultaneous or Wake. Still text. */
     public String getAcousticHeadMode() {
         return acousticHeadMode;
     }
 
     public void setAcousticHeadMode(String acousticHeadMode) {
-        this.acousticHeadMode = acousticHeadMode;
+        this.acousticHeadMode = acousticHeadMode == null ? "" : acousticHeadMode;
     }
 
+    /** The one sonar range, on Attack Parameters. */
     public String getAttackSonarRange() {
         return attackSonarRange;
     }
 
     public void setAttackSonarRange(String attackSonarRange) {
-        this.attackSonarRange = attackSonarRange;
+        this.attackSonarRange = attackSonarRange == null ? "" : attackSonarRange;
     }
 
-    public String getAttackMode() {
+    public TargetType getAttackMode() {
         return attackMode;
     }
 
-    public void setAttackMode(String attackMode) {
+    public void setAttackMode(TargetType attackMode) {
         this.attackMode = attackMode;
     }
 
-    public String getWakeGuidance() {
+    public GuidanceMode getWakeGuidance() {
         return wakeGuidance;
     }
 
-    public void setWakeGuidance(String wakeGuidance) {
+    public void setWakeGuidance(GuidanceMode wakeGuidance) {
         this.wakeGuidance = wakeGuidance;
     }
 
-    public String getGuidanceMode() {
+    public InternalGuidanceMode getGuidanceMode() {
         return guidanceMode;
     }
 
-    public void setGuidanceMode(String guidanceMode) {
+    public void setGuidanceMode(InternalGuidanceMode guidanceMode) {
         this.guidanceMode = guidanceMode;
     }
 
@@ -167,7 +162,7 @@ public class WeaponConfig {
     }
 
     public void setHomingMode(String homingMode) {
-        this.homingMode = homingMode;
+        this.homingMode = homingMode == null ? "" : homingMode;
     }
 
     public String getComments() {
@@ -175,6 +170,6 @@ public class WeaponConfig {
     }
 
     public void setComments(String comments) {
-        this.comments = comments;
+        this.comments = comments == null ? "" : comments;
     }
 }

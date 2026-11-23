@@ -29,7 +29,15 @@ import page.form.FormStack;
 import page.form.GroupLabel;
 import page.form.Mono;
 import page.form.OptionGroup;
+import page.model.AcousticHeadMode;
+import page.model.Depth;
+import page.model.Distance;
+import page.model.GuidanceMode;
+import page.model.InternalGuidanceMode;
+import page.model.Speed;
+import page.model.TargetType;
 import page.model.WeaponConfig;
+import page.model.WeaponType;
 
 /**
  * Create Weapon Configuration.
@@ -40,11 +48,10 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String[] SPEEDS = {"24", "30", "35", "40", "45", "50"};
+    private static final Speed[] SPEEDS = {
+        new Speed(24), new Speed(30), new Speed(35), new Speed(40), new Speed(45), new Speed(50)
+    };
     private static final String[] ACOUSTIC = {"Simultaneous", "Wake"};
-    private static final String[] ATTACK = {"Sub Surface", "Surface"};
-    private static final String[] ON_OFF = {"ON", "OFF"};
-    private static final String[] GUIDANCE = {"Bg Rider Out", "CCM", "TCCM", "Self Guided"};
     private static final String[] HOMING = {"Pro Navigation", "Intercept"};
 
     private final OptionGroup weapon;
@@ -58,7 +65,6 @@ public class CreateWeaponConfigPanel extends JPanel {
     private final JTextField orderedDepth;
     private final JTextField searchSpeed;
     private final JTextField enbDist;
-    private final JTextField safetySonarRange;
     private final JTextField udl;
     private final JTextField ldl;
     private final JComboBox ash;
@@ -109,16 +115,15 @@ public class CreateWeaponConfigPanel extends JPanel {
         orderedDepth = Mono.field(12);
         searchSpeed = Mono.field(12);
         enbDist = Mono.field(8);
-        safetySonarRange = Mono.field(12);
         udl = Mono.field(8);
         ldl = Mono.field(8);
-        ash = blankCombo(ON_OFF);
+        ash = blankCombo(AcousticHeadMode.values());
         maxRd = Mono.field(8);
         acousticHeadMode = blankCombo(ACOUSTIC);
         attackSonarRange = Mono.field(12);
-        attackMode = blankCombo(ATTACK);
-        wakeGuidance = blankCombo(ON_OFF);
-        guidanceMode = blankCombo(GUIDANCE);
+        attackMode = blankCombo(TargetType.values());
+        wakeGuidance = blankCombo(GuidanceMode.values());
+        guidanceMode = blankCombo(InternalGuidanceMode.values());
         homingMode = blankCombo(HOMING);
         comments = Mono.area(4, 20);
         cancelButton = colored("Cancel", new Color(214, 64, 64));
@@ -164,7 +169,6 @@ public class CreateWeaponConfigPanel extends JPanel {
         form.add(pad(new FormRow("Search Speed", searchSpeed)));
         form.add(new GroupLabel("SAFETY PARAMETERS"));
         form.add(pad(new FormRow("Enb Dist", enbDist)));
-        form.add(pad(new FormRow("Sonar Range", safetySonarRange)));
         form.add(pad(pair(labeled("UDL", udl), labeled("LDL", ldl))));
         form.add(pad(pair(labeled("ASH", ash), labeled("Max RD", maxRd))));
         form.add(new GroupLabel("ATTACK PARAMETERS"));
@@ -190,7 +194,6 @@ public class CreateWeaponConfigPanel extends JPanel {
         orderedDepth.setText("");
         searchSpeed.setText("");
         enbDist.setText("500");
-        safetySonarRange.setText("");
         udl.setText("");
         ldl.setText("");
         clear(ash);
@@ -207,23 +210,22 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     public WeaponConfig readForm() {
         WeaponConfig config = new WeaponConfig();
-        config.setWeapon(weapon.getSelected());
+        config.setWeapon(WeaponType.fromLabel(weapon.getSelected()));
         config.setConfigName(getConfigName());
-        config.setInitialSpeed(selected(initialSpeed));
+        config.setInitialSpeed((Speed) chosen(initialSpeed));
         config.setOrderedSpeed(orderedSpeed.getText());
-        config.setOrderedDepth(orderedDepth.getText());
-        config.setSearchSpeed(searchSpeed.getText());
-        config.setEnbDist(enbDist.getText());
-        config.setSafetySonarRange(safetySonarRange.getText());
-        config.setUdl(udl.getText());
-        config.setLdl(ldl.getText());
-        config.setAsh(selected(ash));
-        config.setMaxRd(maxRd.getText());
+        config.setOrderedDepth(Depth.parse(orderedDepth.getText()));
+        config.setSearchSpeed(Speed.parse(searchSpeed.getText()));
+        config.setEnbDist(Distance.parse(enbDist.getText()));
+        config.setUdl(Distance.parse(udl.getText()));
+        config.setLdl(Distance.parse(ldl.getText()));
+        config.setAsh((AcousticHeadMode) chosen(ash));
+        config.setMaxRd(Distance.parse(maxRd.getText()));
         config.setAcousticHeadMode(selected(acousticHeadMode));
         config.setAttackSonarRange(attackSonarRange.getText());
-        config.setAttackMode(selected(attackMode));
-        config.setWakeGuidance(selected(wakeGuidance));
-        config.setGuidanceMode(selected(guidanceMode));
+        config.setAttackMode((TargetType) chosen(attackMode));
+        config.setWakeGuidance((GuidanceMode) chosen(wakeGuidance));
+        config.setGuidanceMode((InternalGuidanceMode) chosen(guidanceMode));
         config.setHomingMode(selected(homingMode));
         config.setComments(comments.getText());
         return config;
@@ -266,7 +268,7 @@ public class CreateWeaponConfigPanel extends JPanel {
     /** Fill every control from a saved weapon configuration. */
     public void apply(WeaponConfig config) {
         filling = true;
-        weapon.setSelected(config.getWeapon());
+        weapon.setSelected(written(config.getWeapon()));
         if (nameIsList) {
             nameList.setSelectedItem(config.getConfigName());
         } else {
@@ -274,14 +276,13 @@ public class CreateWeaponConfigPanel extends JPanel {
         }
         showChoice(initialSpeed, config.getInitialSpeed());
         orderedSpeed.setText(config.getOrderedSpeed());
-        orderedDepth.setText(config.getOrderedDepth());
-        searchSpeed.setText(config.getSearchSpeed());
-        enbDist.setText(config.getEnbDist());
-        safetySonarRange.setText(config.getSafetySonarRange());
-        udl.setText(config.getUdl());
-        ldl.setText(config.getLdl());
+        orderedDepth.setText(written(config.getOrderedDepth()));
+        searchSpeed.setText(written(config.getSearchSpeed()));
+        enbDist.setText(written(config.getEnbDist()));
+        udl.setText(written(config.getUdl()));
+        ldl.setText(written(config.getLdl()));
         showChoice(ash, config.getAsh());
-        maxRd.setText(config.getMaxRd());
+        maxRd.setText(written(config.getMaxRd()));
         showChoice(acousticHeadMode, config.getAcousticHeadMode());
         attackSonarRange.setText(config.getAttackSonarRange());
         showChoice(attackMode, config.getAttackMode());
@@ -346,7 +347,6 @@ public class CreateWeaponConfigPanel extends JPanel {
         lockField(orderedDepth);
         lockField(searchSpeed);
         lockField(enbDist);
-        lockField(safetySonarRange);
         lockField(udl);
         lockField(ldl);
         lockField(maxRd);
@@ -370,7 +370,7 @@ public class CreateWeaponConfigPanel extends JPanel {
         box.setEnabled(false);
     }
 
-    private static JComboBox blankCombo(String[] items) {
+    private static JComboBox blankCombo(Object[] items) {
         JComboBox box = Mono.combo(items);
         box.setSelectedIndex(-1);
         return box;
@@ -380,12 +380,20 @@ public class CreateWeaponConfigPanel extends JPanel {
         box.setSelectedIndex(-1);
     }
 
-    private static void showChoice(JComboBox box, String value) {
-        if (value == null || value.length() == 0) {
+    private static void showChoice(JComboBox box, Object value) {
+        if (value == null || "".equals(value)) {
             box.setSelectedIndex(-1);
             return;
         }
         box.setSelectedItem(value);
+    }
+
+    private static Object chosen(JComboBox box) {
+        return box.getSelectedItem();
+    }
+
+    private static String written(Object value) {
+        return value == null ? "" : value.toString();
     }
 
     private static String selected(JComboBox box) {

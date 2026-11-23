@@ -81,8 +81,8 @@ public final class Mono {
         }
     }
 
-    /** Java 6: use the raw JComboBox, not JComboBox&lt;String&gt;. */
-    public static JComboBox combo(String[] items) {
+    /** Java 6: use the raw JComboBox, not JComboBox&lt;String&gt;. Items may be strings or enums. */
+    public static JComboBox combo(Object[] items) {
         JComboBox box = new JComboBox(items);
         box.setBackground(FIELD);
         box.setForeground(FIELD_TEXT);
