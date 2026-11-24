@@ -68,6 +68,8 @@ if ("WC".equals(item)) {
 
 Eng has two word sets of its own. F4 flips `secondSet` and the commands become `"B1"`, `"B2"`, and the rest. Coming back from WC must restore the set that was showing, not always the first set. `secondSet` is that memory. WC does not change `secondSet`.
 
+WC has a second word set of its own. F7 swaps the bottom bar. The first set is Guid Mode through Stop, and F7 reads Manu. The swapped set is Tube 1, LL Tube 2, Tube 3, Tube 4, Tube 5, Tube 6, TORPS, and the same F8 through F12. F7 reads TORPS there, and pressing it swaps back. Tube 1 through Tube 6 open that tube on Torpedo Trajectory. `wcTubeSet` remembers which WC set is showing, the same way `secondSet` remembers the Eng set.
+
 `setLabels` also rebinds the physical F-keys. The map name is the key code (`function-112` for F1), so the new command replaces the old one. A click and a keypress send the same command to the same listener.
 
 ---

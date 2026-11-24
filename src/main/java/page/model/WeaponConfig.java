@@ -2,135 +2,189 @@ package page.model;
 
 /**
  * One weapon configuration.
- * Choices and measures use the same kinds of values as the other system.
- * Config name, acoustic head mode, homing mode, sonar range, and comments are still text.
- * No Swing types.
+ * The config name is a char array.
+ * Speeds and depth are doubles. Distances and sonar are floats.
+ * Those numbers become Speed, Depth, or Distance only through the to-methods,
+ * which attach the unit.
+ * ASH and Wake Guidance are OnOff. No Swing types.
  */
 public class WeaponConfig {
 
-    private WeaponType weapon;
-    private String configName = "";
-    private Speed initialSpeed;
-    private Speed orderedSpeed;
-    private Depth orderedDepth;
-    private Speed searchSpeed;
-    private Distance enbDist;
-    private Distance udl;
-    private Distance ldl;
-    private AcousticHeadMode ash;
-    private Distance maxRd;
-    private String acousticHeadMode = "";
-    private String attackSonarRange = "";
+    private WeaponConfigState weapon;
+    private char[] configName = new char[0];
+    private Double initialSpeed;
+    private Double orderedSpeed;
+    private Double orderedDepth;
+    private Double searchSpeed;
+    private Float enbDist;
+    private Float udl;
+    private Float ldl;
+    private OnOff ash;
+    private Float maxRd;
+    private AcousticHeadMode acousticHeadMode;
+    private Float attackSonarRange;
     private TargetType attackMode;
-    private GuidanceMode wakeGuidance;
-    private InternalGuidanceMode guidanceMode;
-    private String homingMode = "";
+    private OnOff wakeGuidance;
+    private GuidanceMode guidanceMode;
+    private InternalGuidanceMode homingMode;
     private String comments = "";
 
-    public WeaponType getWeapon() {
+    public WeaponConfigState getWeapon() {
         return weapon;
     }
 
-    public void setWeapon(WeaponType weapon) {
+    public void setWeapon(WeaponConfigState weapon) {
         this.weapon = weapon;
     }
 
-    public String getConfigName() {
-        return configName;
+    public char[] getConfigName() {
+        char[] copy = new char[configName.length];
+        System.arraycopy(configName, 0, copy, 0, configName.length);
+        return copy;
     }
 
     public void setConfigName(String configName) {
-        this.configName = configName == null ? "" : configName;
+        if (configName == null) {
+            this.configName = new char[0];
+        } else {
+            this.configName = configName.toCharArray();
+        }
     }
 
-    public Speed getInitialSpeed() {
+    /** The config name as text, for a drop-down or a label. */
+    public String configNameText() {
+        return new String(configName);
+    }
+
+    /** Initial Speed in knots, or null when the box was left empty. */
+    public Double getInitialSpeed() {
         return initialSpeed;
     }
 
-    public void setInitialSpeed(Speed initialSpeed) {
+    public void setInitialSpeed(Double initialSpeed) {
         this.initialSpeed = initialSpeed;
     }
 
-    public Speed getOrderedSpeed() {
+    public Speed toInitialSpeed() {
+        return initialSpeed == null ? null : new Speed(initialSpeed.doubleValue());
+    }
+
+    /** Ordered Speed in knots. */
+    public Double getOrderedSpeed() {
         return orderedSpeed;
     }
 
-    public void setOrderedSpeed(Speed orderedSpeed) {
+    public void setOrderedSpeed(Double orderedSpeed) {
         this.orderedSpeed = orderedSpeed;
     }
 
-    public Depth getOrderedDepth() {
+    public Speed toOrderedSpeed() {
+        return orderedSpeed == null ? null : new Speed(orderedSpeed.doubleValue());
+    }
+
+    /** Ordered Depth in metres. */
+    public Double getOrderedDepth() {
         return orderedDepth;
     }
 
-    public void setOrderedDepth(Depth orderedDepth) {
+    public void setOrderedDepth(Double orderedDepth) {
         this.orderedDepth = orderedDepth;
     }
 
-    public Speed getSearchSpeed() {
+    public Depth toOrderedDepth() {
+        return orderedDepth == null ? null : new Depth(orderedDepth.doubleValue());
+    }
+
+    /** Search Speed in knots. The form label is Search Speed. */
+    public Double getSearchSpeed() {
         return searchSpeed;
     }
 
-    public void setSearchSpeed(Speed searchSpeed) {
+    public void setSearchSpeed(Double searchSpeed) {
         this.searchSpeed = searchSpeed;
     }
 
-    public Distance getEnbDist() {
+    public Speed toSearchSpeed() {
+        return searchSpeed == null ? null : new Speed(searchSpeed.doubleValue());
+    }
+
+    /** Enb Dist in metres. */
+    public Float getEnbDist() {
         return enbDist;
     }
 
-    public void setEnbDist(Distance enbDist) {
+    public void setEnbDist(Float enbDist) {
         this.enbDist = enbDist;
     }
 
-    public Distance getUdl() {
+    public Distance toEnbDist() {
+        return enbDist == null ? null : new Distance(enbDist.floatValue());
+    }
+
+    public Float getUdl() {
         return udl;
     }
 
-    public void setUdl(Distance udl) {
+    public void setUdl(Float udl) {
         this.udl = udl;
     }
 
-    public Distance getLdl() {
+    public Distance toUdl() {
+        return udl == null ? null : new Distance(udl.floatValue());
+    }
+
+    public Float getLdl() {
         return ldl;
     }
 
-    public void setLdl(Distance ldl) {
+    public void setLdl(Float ldl) {
         this.ldl = ldl;
     }
 
-    public AcousticHeadMode getAsh() {
+    public Distance toLdl() {
+        return ldl == null ? null : new Distance(ldl.floatValue());
+    }
+
+    public OnOff getAsh() {
         return ash;
     }
 
-    public void setAsh(AcousticHeadMode ash) {
+    public void setAsh(OnOff ash) {
         this.ash = ash;
     }
 
-    public Distance getMaxRd() {
+    /** Max RD in metres. */
+    public Float getMaxRd() {
         return maxRd;
     }
 
-    public void setMaxRd(Distance maxRd) {
+    public void setMaxRd(Float maxRd) {
         this.maxRd = maxRd;
     }
 
-    /** Acoustic Head Mode. Passive, Simultaneous, or Wake. */
-    public String getAcousticHeadMode() {
+    public Distance toMaxRd() {
+        return maxRd == null ? null : new Distance(maxRd.floatValue());
+    }
+
+    public AcousticHeadMode getAcousticHeadMode() {
         return acousticHeadMode;
     }
 
-    public void setAcousticHeadMode(String acousticHeadMode) {
-        this.acousticHeadMode = acousticHeadMode == null ? "" : acousticHeadMode;
+    public void setAcousticHeadMode(AcousticHeadMode acousticHeadMode) {
+        this.acousticHeadMode = acousticHeadMode;
     }
 
-    /** The one sonar range, on Attack Parameters. */
-    public String getAttackSonarRange() {
+    /** Sonar range in metres. The one sonar range, on Attack Parameters. */
+    public Float getAttackSonarRange() {
         return attackSonarRange;
     }
 
-    public void setAttackSonarRange(String attackSonarRange) {
-        this.attackSonarRange = attackSonarRange == null ? "" : attackSonarRange;
+    public void setAttackSonarRange(Float attackSonarRange) {
+        this.attackSonarRange = attackSonarRange;
+    }
+
+    public Distance toSonarRange() {
+        return attackSonarRange == null ? null : new Distance(attackSonarRange.floatValue());
     }
 
     public TargetType getAttackMode() {
@@ -141,28 +195,28 @@ public class WeaponConfig {
         this.attackMode = attackMode;
     }
 
-    public GuidanceMode getWakeGuidance() {
+    public OnOff getWakeGuidance() {
         return wakeGuidance;
     }
 
-    public void setWakeGuidance(GuidanceMode wakeGuidance) {
+    public void setWakeGuidance(OnOff wakeGuidance) {
         this.wakeGuidance = wakeGuidance;
     }
 
-    public InternalGuidanceMode getGuidanceMode() {
+    public GuidanceMode getGuidanceMode() {
         return guidanceMode;
     }
 
-    public void setGuidanceMode(InternalGuidanceMode guidanceMode) {
+    public void setGuidanceMode(GuidanceMode guidanceMode) {
         this.guidanceMode = guidanceMode;
     }
 
-    public String getHomingMode() {
+    public InternalGuidanceMode getHomingMode() {
         return homingMode;
     }
 
-    public void setHomingMode(String homingMode) {
-        this.homingMode = homingMode == null ? "" : homingMode;
+    public void setHomingMode(InternalGuidanceMode homingMode) {
+        this.homingMode = homingMode;
     }
 
     public String getComments() {

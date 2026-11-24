@@ -34,10 +34,11 @@ import page.model.Depth;
 import page.model.Distance;
 import page.model.GuidanceMode;
 import page.model.InternalGuidanceMode;
+import page.model.OnOff;
 import page.model.Speed;
 import page.model.TargetType;
 import page.model.WeaponConfig;
-import page.model.WeaponType;
+import page.model.WeaponConfigState;
 
 /**
  * Create Weapon Configuration.
@@ -51,8 +52,6 @@ public class CreateWeaponConfigPanel extends JPanel {
     private static final Speed[] SPEEDS = {
         new Speed(24), new Speed(30), new Speed(35), new Speed(40), new Speed(45), new Speed(50)
     };
-    private static final String[] ACOUSTIC = {"Passive", "Simultaneous", "Wake"};
-    private static final String[] HOMING = {"Pro Navigation", "Intercept"};
 
     private final OptionGroup weapon;
     private final JTextField configName;
@@ -111,20 +110,20 @@ public class CreateWeaponConfigPanel extends JPanel {
         configName = Mono.field(18);
         nameList = Mono.combo(new String[0]);
         initialSpeed = blankCombo(SPEEDS);
-        orderedSpeed = Mono.field(12);
-        orderedDepth = Mono.field(12);
-        searchSpeed = Mono.field(12);
-        enbDist = Mono.field(8);
-        udl = Mono.field(8);
-        ldl = Mono.field(8);
-        ash = blankCombo(AcousticHeadMode.values());
-        maxRd = Mono.field(8);
-        acousticHeadMode = blankCombo(ACOUSTIC);
-        attackSonarRange = Mono.field(12);
+        orderedSpeed = Mono.number(12);
+        orderedDepth = Mono.number(12);
+        searchSpeed = Mono.number(12);
+        enbDist = Mono.number(8);
+        udl = Mono.number(8);
+        ldl = Mono.number(8);
+        ash = blankCombo(OnOff.values());
+        maxRd = Mono.number(8);
+        acousticHeadMode = blankCombo(AcousticHeadMode.values());
+        attackSonarRange = Mono.number(12);
         attackMode = blankCombo(TargetType.values());
-        wakeGuidance = blankCombo(GuidanceMode.values());
-        guidanceMode = blankCombo(InternalGuidanceMode.values());
-        homingMode = blankCombo(HOMING);
+        wakeGuidance = blankCombo(OnOff.values());
+        guidanceMode = blankCombo(GuidanceMode.values());
+        homingMode = blankCombo(InternalGuidanceMode.values());
         comments = Mono.area(4, 20);
         cancelButton = colored("Cancel", new Color(214, 64, 64));
         okButton = colored("OK", new Color(30, 150, 78));
@@ -210,23 +209,23 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     public WeaponConfig readForm() {
         WeaponConfig config = new WeaponConfig();
-        config.setWeapon(WeaponType.fromLabel(weapon.getSelected()));
+        config.setWeapon(WeaponConfigState.fromLabel(weapon.getSelected()));
         config.setConfigName(getConfigName());
-        config.setInitialSpeed((Speed) chosen(initialSpeed));
-        config.setOrderedSpeed(Speed.parse(orderedSpeed.getText()));
-        config.setOrderedDepth(Depth.parse(orderedDepth.getText()));
-        config.setSearchSpeed(Speed.parse(searchSpeed.getText()));
-        config.setEnbDist(Distance.parse(enbDist.getText()));
-        config.setUdl(Distance.parse(udl.getText()));
-        config.setLdl(Distance.parse(ldl.getText()));
-        config.setAsh((AcousticHeadMode) chosen(ash));
-        config.setMaxRd(Distance.parse(maxRd.getText()));
-        config.setAcousticHeadMode(selected(acousticHeadMode));
-        config.setAttackSonarRange(attackSonarRange.getText());
+        config.setInitialSpeed(knotsOf(chosen(initialSpeed)));
+        config.setOrderedSpeed(knots(orderedSpeed.getText()));
+        config.setOrderedDepth(metresDeep(orderedDepth.getText()));
+        config.setSearchSpeed(knots(searchSpeed.getText()));
+        config.setEnbDist(metres(enbDist.getText()));
+        config.setUdl(metres(udl.getText()));
+        config.setLdl(metres(ldl.getText()));
+        config.setAsh((OnOff) chosen(ash));
+        config.setMaxRd(metres(maxRd.getText()));
+        config.setAcousticHeadMode((AcousticHeadMode) chosen(acousticHeadMode));
+        config.setAttackSonarRange(metres(attackSonarRange.getText()));
         config.setAttackMode((TargetType) chosen(attackMode));
-        config.setWakeGuidance((GuidanceMode) chosen(wakeGuidance));
-        config.setGuidanceMode((InternalGuidanceMode) chosen(guidanceMode));
-        config.setHomingMode(selected(homingMode));
+        config.setWakeGuidance((OnOff) chosen(wakeGuidance));
+        config.setGuidanceMode((GuidanceMode) chosen(guidanceMode));
+        config.setHomingMode((InternalGuidanceMode) chosen(homingMode));
         config.setComments(comments.getText());
         return config;
     }
@@ -270,21 +269,21 @@ public class CreateWeaponConfigPanel extends JPanel {
         filling = true;
         weapon.setSelected(written(config.getWeapon()));
         if (nameIsList) {
-            nameList.setSelectedItem(config.getConfigName());
+            nameList.setSelectedItem(config.configNameText());
         } else {
-            configName.setText(config.getConfigName());
+            configName.setText(config.configNameText());
         }
-        showChoice(initialSpeed, config.getInitialSpeed());
-        orderedSpeed.setText(written(config.getOrderedSpeed()));
-        orderedDepth.setText(written(config.getOrderedDepth()));
-        searchSpeed.setText(written(config.getSearchSpeed()));
-        enbDist.setText(written(config.getEnbDist()));
-        udl.setText(written(config.getUdl()));
-        ldl.setText(written(config.getLdl()));
+        showChoice(initialSpeed, config.toInitialSpeed());
+        orderedSpeed.setText(written(config.toOrderedSpeed()));
+        orderedDepth.setText(written(config.toOrderedDepth()));
+        searchSpeed.setText(written(config.toSearchSpeed()));
+        enbDist.setText(written(config.toEnbDist()));
+        udl.setText(written(config.toUdl()));
+        ldl.setText(written(config.toLdl()));
         showChoice(ash, config.getAsh());
-        maxRd.setText(written(config.getMaxRd()));
+        maxRd.setText(written(config.toMaxRd()));
         showChoice(acousticHeadMode, config.getAcousticHeadMode());
-        attackSonarRange.setText(config.getAttackSonarRange());
+        attackSonarRange.setText(written(config.toSonarRange()));
         showChoice(attackMode, config.getAttackMode());
         showChoice(wakeGuidance, config.getWakeGuidance());
         showChoice(guidanceMode, config.getGuidanceMode());
@@ -390,6 +389,28 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     private static Object chosen(JComboBox box) {
         return box.getSelectedItem();
+    }
+
+    private static Double knotsOf(Object item) {
+        if (!(item instanceof Speed)) {
+            return null;
+        }
+        return new Double(((Speed) item).getKnots());
+    }
+
+    private static Double knots(String text) {
+        Speed speed = Speed.parse(text);
+        return speed == null ? null : new Double(speed.getKnots());
+    }
+
+    private static Double metresDeep(String text) {
+        Depth depth = Depth.parse(text);
+        return depth == null ? null : new Double(depth.getMeters());
+    }
+
+    private static Float metres(String text) {
+        Distance distance = Distance.parse(text);
+        return distance == null ? null : new Float(distance.getMeters());
     }
 
     private static String written(Object value) {

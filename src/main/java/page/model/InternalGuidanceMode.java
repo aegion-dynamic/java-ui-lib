@@ -1,12 +1,10 @@
 package page.model;
 
-/** Guidance Mode. Their enum name is InternalGuidanceMode. */
+/** Homing. Their enum name is InternalGuidanceMode. */
 public enum InternalGuidanceMode {
 
-    BG_RIDER_OUT("Bg Rider Out"),
-    CCM("CCM"),
-    TCCM("TCCM"),
-    SELF_GUIDED("Self Guided");
+    PRO_NAVIGATION("Pro Navigation"),
+    INTERCEPT("Intercept");
 
     private final String label;
 

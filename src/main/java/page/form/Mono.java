@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -19,6 +20,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.DocumentFilter;
 
 /**
  * Shared colours for the dark forms.
@@ -42,6 +48,8 @@ public final class Mono {
 
     private static final Border LINE = BorderFactory.createLineBorder(RULE);
     private static final Border FIELD_LINE = BorderFactory.createLineBorder(new Color(210, 214, 220));
+    /** Digits, and at most one decimal point. Empty matches, so a box can be cleared. */
+    private static final Pattern NUMBER = Pattern.compile("[0-9]*\\.?[0-9]*");
 
     private Mono() {
     }
@@ -58,6 +66,16 @@ public final class Mono {
         JTextField field = new JTextField(columns);
         styleField(field);
         field.setForeground(FIELD_TEXT);
+        return field;
+    }
+
+    /**
+     * A number box. Digits and one decimal point are kept.
+     * Letters and a second dot are refused. Empty is allowed.
+     */
+    public static JTextField number(int columns) {
+        JTextField field = field(columns);
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new NumberFilter());
         return field;
     }
 
@@ -223,6 +241,32 @@ public final class Mono {
             }
             g.fillPolygon(xs, ys, 3);
             g.dispose();
+        }
+    }
+
+    /** Keeps a text field on the number pattern. A change that would break it is dropped. */
+    private static final class NumberFilter extends DocumentFilter {
+
+        public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr)
+                throws BadLocationException {
+            if (fits(fb.getDocument(), offset, 0, text)) {
+                super.insertString(fb, offset, text, attr);
+            }
+        }
+
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attr)
+                throws BadLocationException {
+            if (fits(fb.getDocument(), offset, length, text)) {
+                super.replace(fb, offset, length, text, attr);
+            }
+        }
+
+        private static boolean fits(Document document, int offset, int length, String text)
+                throws BadLocationException {
+            String current = document.getText(0, document.getLength());
+            String incoming = text == null ? "" : text;
+            String next = current.substring(0, offset) + incoming + current.substring(offset + length);
+            return NUMBER.matcher(next).matches();
         }
     }
 }

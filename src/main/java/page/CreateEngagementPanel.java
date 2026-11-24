@@ -98,7 +98,7 @@ public class CreateEngagementPanel extends JPanel {
         group1 = new OptionGroup(new String[] {"Prosp Eng", "Real Engine"}, 0, 2);
         group2 = new OptionGroup(new String[] {"ETH WVR", "ETH WEXE"}, 0, 2);
         group3 = new OptionGroup(new String[] {"Yes", "No"}, 1, 2);
-        field3 = Mono.field(10);
+        field3 = Mono.number(10);
         field3.setText("0");
         group4 = new OptionGroup(
                 new String[] {"Tube 6", "Tube 5", "Tube 4", "Tube 3", "Tube 2", "Tube 1"},
@@ -204,10 +204,10 @@ public class CreateEngagementPanel extends JPanel {
 
     private FormCard section2Card() {
         FormCard card = new FormCard();
-        card.addRow(parameterPair("TB", "305.00", "RB", "305.00"));
-        card.addRow(parameterPair("TP", "2.87", "Dp", "0.00"));
-        card.addRow(parameterPair("Tpe", "5.00", "TCa", "125.00"));
-        card.addRow(parameterPair("ATg", "0.00", field4Row()));
+        card.addRow(parameterNumber("TB", "305.00", "RB", "305.00"));
+        card.addRow(parameterNumber("TP", "2.87", "Dp", "0.00"));
+        card.addRow(parameterNumber("Tpe", "5.00", "TCa", "125.00"));
+        card.addRow(parameterNumber("ATg", "0.00", field4Row()));
         card.addRow(parameterPair("Long", "80\u00B0 07' 48\"", "Lat", "00\u00B0 01' 46\" N"));
         return card;
     }
@@ -260,6 +260,14 @@ public class CreateEngagementPanel extends JPanel {
         return line;
     }
 
+    private Block parameterNumber(String leftName, String leftValue, String rightName, String rightValue) {
+        return pair(namedNumber(leftName, leftValue), namedNumber(rightName, rightValue));
+    }
+
+    private Block parameterNumber(String leftName, String leftValue, JPanel right) {
+        return pair(namedNumber(leftName, leftValue), right);
+    }
+
     private Block parameterPair(String leftName, String leftValue, String rightName, String rightValue) {
         return pair(namedField(leftName, leftValue), namedField(rightName, rightValue));
     }
@@ -277,13 +285,21 @@ public class CreateEngagementPanel extends JPanel {
         return line;
     }
 
+    private JPanel namedNumber(String name, String value) {
+        return named(name, value, true);
+    }
+
     private JPanel namedField(String name, String value) {
+        return named(name, value, false);
+    }
+
+    private JPanel named(String name, String value, boolean number) {
         JPanel line = new JPanel(new BorderLayout(8, 0));
         Mono.paint(line);
         JLabel label = new JLabel(name);
         Mono.paint(label);
         label.setPreferredSize(new Dimension(48, 24));
-        JTextField field = Mono.field(8);
+        JTextField field = number ? Mono.number(8) : Mono.field(8);
         field.setText(value);
         parameters.put(name, field);
         line.add(label, BorderLayout.WEST);

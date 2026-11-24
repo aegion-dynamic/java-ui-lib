@@ -1,10 +1,12 @@
 package page.model;
 
-/** Wake Guidance. Their enum name is GuidanceMode. The choices on the form are ON and OFF. */
+/** The guidance field. Their enum name is GuidanceMode. */
 public enum GuidanceMode {
 
-    ON("ON"),
-    OFF("OFF");
+    BG_RIDER_OUT("Bg Rider Out"),
+    CCM("CCM"),
+    TCCM("TCCM"),
+    SELF_GUIDED("Self Guided");
 
     private final String label;
 

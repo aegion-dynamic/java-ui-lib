@@ -69,6 +69,12 @@ public class FunctionPage extends JFrame {
         "Manu", "WG End", "Avoid Target", "LLCHM", "--------", "Stop"
     };
 
+    /** WC footer after F7. F7 swaps this set back. */
+    private static final String[] WC_TUBE_TEXT = {
+        "Tube 1", "LL Tube 2", "Tube 3", "Tube 4", "Tube 5", "Tube 6",
+        "TORPS", "WG End", "Avoid Target", "LLCHM", "--------", "Stop"
+    };
+
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
     private static final String[] SECOND_TEXT = {
         "WConfig", "Modify", "Delete", "Swap", "Alt 5", "Alt 6",
@@ -96,6 +102,8 @@ public class FunctionPage extends JFrame {
     private FunctionKeyBar footer;
     private boolean secondSet;
     private boolean wcPage;
+    private boolean wcTubeSet;
+    private WcPage wcPagePanel;
     private final CardLayout leftCards = new CardLayout();
     private final JPanel leftSlot = new JPanel(leftCards);
     private final CardLayout rightCards = new CardLayout();
@@ -112,6 +120,11 @@ public class FunctionPage extends JFrame {
         public void actionPerformed(ActionEvent event) {
             String key = event.getActionCommand();
             if (wcPage) {
+                if ("F7".equals(key)) {
+                    onWcF7();
+                } else if (wcTubeSet) {
+                    onWcTube(key);
+                }
                 return;
             }
 
@@ -379,6 +392,7 @@ public class FunctionPage extends JFrame {
         formCards.show(formSlot, "parameters");
 
         WcPage wc = new WcPage();
+        wcPagePanel = wc;
         leftSlot.setOpaque(false);
         leftSlot.add(left, "eng");
         leftSlot.add(wc.getBody(), "wc");
@@ -448,6 +462,35 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("Delete engagement");
     }
 
+    /** F7 on the WC page. Swaps the bottom bar between the two WC word sets. */
+    private void onWcF7() {
+        wcTubeSet = !wcTubeSet;
+        if (wcTubeSet) {
+            footer.setLabels(FunctionKeyBar.KEYS, WC_TUBE_TEXT);
+            resultLabel.setText("WC tubes");
+        } else {
+            footer.setLabels(FunctionKeyBar.KEYS, WC_TEXT);
+            resultLabel.setText("WC");
+        }
+    }
+
+    /** Tube 1 through Tube 6 on the swapped WC bar. */
+    private void onWcTube(String key) {
+        if ("F1".equals(key)) {
+            wcPagePanel.showTube("01");
+        } else if ("F2".equals(key)) {
+            wcPagePanel.showTube("02");
+        } else if ("F3".equals(key)) {
+            wcPagePanel.showTube("03");
+        } else if ("F4".equals(key)) {
+            wcPagePanel.showTube("04");
+        } else if ("F5".equals(key)) {
+            wcPagePanel.showTube("05");
+        } else if ("F6".equals(key)) {
+            wcPagePanel.showTube("06");
+        }
+    }
+
     /** The top drop-down. Eng is the form screen. WC is the depth-window screen. */
     private void showChosenPage() {
         Object item = pageChoice.getSelectedItem();
@@ -456,7 +499,7 @@ public class FunctionPage extends JFrame {
             leftCards.show(leftSlot, "wc");
             rightCards.show(rightBody, "wc");
             rightColumn.setPreferredSize(new Dimension(300, 100));
-            footer.setLabels(FunctionKeyBar.KEYS, WC_TEXT);
+            footer.setLabels(FunctionKeyBar.KEYS, wcTubeSet ? WC_TUBE_TEXT : WC_TEXT);
         } else {
             wcPage = false;
             leftCards.show(leftSlot, "eng");

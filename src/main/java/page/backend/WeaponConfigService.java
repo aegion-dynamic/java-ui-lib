@@ -21,7 +21,7 @@ public class WeaponConfigService {
     public void update(WeaponConfig config) {
         for (int i = 0; i < configs.size(); i++) {
             WeaponConfig stored = (WeaponConfig) configs.get(i);
-            if (sameName(stored, config.getConfigName())) {
+            if (sameName(stored, config.configNameText())) {
                 configs.set(i, config);
                 return;
             }
@@ -58,7 +58,7 @@ public class WeaponConfigService {
         String[] names = new String[configs.size()];
         for (int i = 0; i < configs.size(); i++) {
             WeaponConfig stored = (WeaponConfig) configs.get(i);
-            names[i] = stored.getConfigName();
+            names[i] = stored.configNameText();
         }
         return names;
     }
@@ -67,6 +67,6 @@ public class WeaponConfigService {
         if (name == null) {
             return false;
         }
-        return name.equals(stored.getConfigName());
+        return name.equals(stored.configNameText());
     }
 }

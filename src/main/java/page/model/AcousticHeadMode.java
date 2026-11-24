@@ -1,10 +1,11 @@
 package page.model;
 
-/** ASH. Their enum name is AcousticHeadMode. The choices on the form are ON and OFF. */
+/** Acoustic Head Mode. Their enum name is AcousticHeadMode. */
 public enum AcousticHeadMode {
 
-    ON("ON"),
-    OFF("OFF");
+    PASSIVE("Passive"),
+    SIMULTANEOUS("Simultaneous"),
+    WAKE("Wake");
 
     private final String label;
 

@@ -25,11 +25,11 @@ import page.model.AcousticHeadMode;
 import page.model.Depth;
 import page.model.Distance;
 import page.model.GuidanceMode;
-import page.model.InternalGuidanceMode;
+import page.model.OnOff;
 import page.model.Speed;
 import page.model.TargetType;
 import page.model.WeaponConfig;
-import page.model.WeaponType;
+import page.model.WeaponConfigState;
 
 /**
  * Engagement Parameters. This is the screen shown when the window opens.
@@ -68,29 +68,29 @@ public class EngagementParametersPanel extends JPanel {
         Mono.paint(this);
 
         engm = Mono.combo(new String[] {""});
-        tube = Mono.field(8);
+        tube = Mono.number(8);
         engmType = Mono.field(16);
         weapon = new OptionGroup(new String[] {"EHWT WAR", "EHWT EXE"}, 0, 2);
         configName = Mono.field(16);
-        initialSpeed = Mono.field(12);
-        orderedSpeed = Mono.field(12);
-        orderedDepth = Mono.field(12);
-        searchSpeed = Mono.field(12);
-        enbDist = Mono.field(8);
-        safDist = Mono.field(8);
-        udl = Mono.field(8);
-        ldl = Mono.field(8);
-        safetySonarRange = Mono.field(8);
-        ash = Mono.combo(AcousticHeadMode.values());
+        initialSpeed = Mono.number(12);
+        orderedSpeed = Mono.number(12);
+        orderedDepth = Mono.number(12);
+        searchSpeed = Mono.number(12);
+        enbDist = Mono.number(8);
+        safDist = Mono.number(8);
+        udl = Mono.number(8);
+        ldl = Mono.number(8);
+        safetySonarRange = Mono.number(8);
+        ash = Mono.combo(OnOff.values());
         ash.setSelectedIndex(-1);
-        maxRd = Mono.field(12);
-        acousticHeadMode = Mono.combo(new String[] {"Passive", "Simultaneous", "Wake"});
+        maxRd = Mono.number(12);
+        acousticHeadMode = Mono.combo(AcousticHeadMode.values());
         attackMode = Mono.combo(TargetType.values());
-        wakeSensor = Mono.combo(new GuidanceMode[] {GuidanceMode.OFF, GuidanceMode.ON});
-        guidanceMode = Mono.combo(new InternalGuidanceMode[] {
-            InternalGuidanceMode.BG_RIDER_OUT,
-            InternalGuidanceMode.CCM,
-            InternalGuidanceMode.TCCM
+        wakeSensor = Mono.combo(OnOff.values());
+        guidanceMode = Mono.combo(new GuidanceMode[] {
+            GuidanceMode.BG_RIDER_OUT,
+            GuidanceMode.CCM,
+            GuidanceMode.TCCM
         });
         type = Mono.combo(TargetType.values());
         type.setSelectedIndex(-1);
@@ -123,10 +123,10 @@ public class EngagementParametersPanel extends JPanel {
         form.add(pad(pair(labeled("Sonar Range", safetySonarRange), labeled("ASH", ash))));
         form.add(pad(new FormRow("MAX DIST", maxRd)));
 
-        form.add(new GroupLabel("CAL ENGM PARAMETERS"));
-        form.add(pad(pair(labeled("WCse", Mono.field(8)), labeled("Prog CSe", Mono.field(8)))));
-        form.add(pad(pair(labeled("ITA", Mono.field(8)), labeled("Sonar Range", Mono.field(8)))));
-        form.add(pad(pair(labeled("Wake EAl", Mono.field(8)), labeled("WAKE EAL", Mono.field(8)))));
+        form.add(pad(pair(labeled("WCse", Mono.number(8)), labeled("Prog CSe", Mono.number(8)))));
+        form.add(pad(pair(labeled("ITA", Mono.number(8)), labeled("Sonar Range", Mono.number(8)))));
+        form.add(pad(pair(labeled("Wake EAl", Mono.number(8)), labeled("WAKE EAL", Mono.number(8)))));
+        form.add(pad(pair(labeled("RT", Mono.number(8)), labeled("MAX. RT", Mono.number(8)))));
         form.add(pad(pair(labeled("RT", Mono.field(8)), labeled("MAX. RT", Mono.field(8)))));
 
         form.add(new GroupLabel("ATTACK PARAMETERS"));
@@ -135,12 +135,12 @@ public class EngagementParametersPanel extends JPanel {
         form.add(pad(new FormRow("Wake Sensor", wakeSensor)));
         form.add(pad(new FormRow("Guidance Mode", guidanceMode)));
 
-        form.add(banner("TARGET PARAMETERS"));
-        form.add(pad(pair(labeled("TRACK", Mono.field(8)), labeled("RB", Mono.field(8)))));
-        form.add(pad(pair(labeled("TB", Mono.field(8)), labeled("Dp", Mono.field(8)))));
-        form.add(pad(pair(labeled("TR", Mono.field(8)), labeled("TCo", Mono.field(8)))));
-        form.add(pad(pair(labeled("TSp", Mono.field(8)), labeled("Type", type))));
-        form.add(pad(pair(labeled("ATB", Mono.field(8)), labeled("Lat", Mono.field(8)))));
+        form.add(pad(pair(labeled("TRACK", Mono.number(8)), labeled("RB", Mono.number(8)))));
+        form.add(pad(pair(labeled("TB", Mono.number(8)), labeled("Dp", Mono.number(8)))));
+        form.add(pad(pair(labeled("TR", Mono.number(8)), labeled("TCo", Mono.number(8)))));
+        form.add(pad(pair(labeled("TSp", Mono.number(8)), labeled("Type", type))));
+        form.add(pad(pair(labeled("ATB", Mono.number(8)), labeled("Lat", Mono.number(8)))));
+        form.add(pad(pair(labeled("Lng", Mono.number(8)), empty())));
         form.add(pad(pair(labeled("Lng", Mono.field(8)), empty())));
         return form;
     }
@@ -148,91 +148,97 @@ public class EngagementParametersPanel extends JPanel {
     /** Copy the weapon choices onto this screen. This is the stage 6 view. */
     public void applyWeapon(WeaponConfig config) {
         weapon.setSelected(written(config.getWeapon()));
-        configName.setText(textOf(config.getConfigName()));
-        text(initialSpeed, written(config.getInitialSpeed()));
-        text(orderedSpeed, written(config.getOrderedSpeed()));
-        text(orderedDepth, written(config.getOrderedDepth()));
-        text(searchSpeed, written(config.getSearchSpeed()));
-        text(enbDist, written(config.getEnbDist()));
-        text(udl, written(config.getUdl()));
-        text(ldl, written(config.getLdl()));
-        text(safetySonarRange, config.getAttackSonarRange());
+        configName.setText(textOf(config.configNameText()));
+        text(initialSpeed, written(config.toInitialSpeed()));
+        text(orderedSpeed, written(config.toOrderedSpeed()));
+        text(orderedDepth, written(config.toOrderedDepth()));
+        text(searchSpeed, written(config.toSearchSpeed()));
+        text(enbDist, written(config.toEnbDist()));
+        text(udl, written(config.toUdl()));
+        text(ldl, written(config.toLdl()));
+        text(safetySonarRange, written(config.toSonarRange()));
         choose(ash, config.getAsh());
-        text(maxRd, written(config.getMaxRd()));
+        text(maxRd, written(config.toMaxRd()));
         choose(acousticHeadMode, config.getAcousticHeadMode());
         choose(attackMode, config.getAttackMode());
         choose(wakeSensor, config.getWakeGuidance());
         choose(guidanceMode, config.getGuidanceMode());
     }
-
-    public WeaponType getWeapon() {
-        return WeaponType.fromLabel(weapon.getSelected());
+    public WeaponConfigState getWeapon() {
+        return WeaponConfigState.fromLabel(weapon.getSelected());
+    }
+    public Double getInitialSpeed() {
+        Speed speed = Speed.parse(initialSpeed.getText());
+        return speed == null ? null : new Double(speed.getKnots());
     }
 
-    public Speed getInitialSpeed() {
-        return Speed.parse(initialSpeed.getText());
+    public Double getOrderedSpeed() {
+        Speed speed = Speed.parse(orderedSpeed.getText());
+        return speed == null ? null : new Double(speed.getKnots());
     }
 
-    public Speed getOrderedSpeed() {
-        return Speed.parse(orderedSpeed.getText());
+    public Double getOrderedDepth() {
+        Depth depth = Depth.parse(orderedDepth.getText());
+        return depth == null ? null : new Double(depth.getMeters());
     }
 
-    public Depth getOrderedDepth() {
-        return Depth.parse(orderedDepth.getText());
+    public Double getSearchSpeed() {
+        Speed speed = Speed.parse(searchSpeed.getText());
+        return speed == null ? null : new Double(speed.getKnots());
     }
 
-    public Speed getSearchSpeed() {
-        return Speed.parse(searchSpeed.getText());
+    public Float getEnbDist() {
+        return metres(enbDist.getText());
     }
 
-    public Distance getEnbDist() {
-        return Distance.parse(enbDist.getText());
+    public Float getSafDist() {
+        return metres(safDist.getText());
     }
 
-    public Distance getSafDist() {
-        return Distance.parse(safDist.getText());
+    public Float getUdl() {
+        return metres(udl.getText());
     }
 
-    public Distance getUdl() {
-        return Distance.parse(udl.getText());
+    public Float getLdl() {
+        return metres(ldl.getText());
     }
 
-    public Distance getLdl() {
-        return Distance.parse(ldl.getText());
+    public Float getSonarRange() {
+        return metres(safetySonarRange.getText());
     }
 
-    public Distance getSonarRange() {
-        return Distance.parse(safetySonarRange.getText());
+    public Float getMaxRd() {
+        return metres(maxRd.getText());
     }
 
-    public Distance getMaxRd() {
-        return Distance.parse(maxRd.getText());
+    public OnOff getAsh() {
+        return (OnOff) chosen(ash);
     }
 
-    public AcousticHeadMode getAsh() {
-        return (AcousticHeadMode) chosen(ash);
-    }
-
-    public String getAcousticHeadMode() {
-        Object item = chosen(acousticHeadMode);
-        return item == null ? "" : item.toString();
+    public AcousticHeadMode getAcousticHeadMode() {
+        return (AcousticHeadMode) chosen(acousticHeadMode);
     }
 
     public TargetType getAttackMode() {
         return (TargetType) chosen(attackMode);
     }
 
-    public GuidanceMode getWakeSensor() {
-        return (GuidanceMode) chosen(wakeSensor);
+    public OnOff getWakeSensor() {
+        return (OnOff) chosen(wakeSensor);
     }
 
-    public InternalGuidanceMode getGuidanceMode() {
-        return (InternalGuidanceMode) chosen(guidanceMode);
+    public GuidanceMode getGuidanceMode() {
+        return (GuidanceMode) chosen(guidanceMode);
     }
 
     public TargetType getTargetType() {
         return (TargetType) chosen(type);
     }
+    private static Float metres(String text) {
+        Distance distance = Distance.parse(text);
+        return distance == null ? null : new Float(distance.getMeters());
+    }
+
 
     private static void text(JTextField field, String value) {
         field.setText(textOf(value));

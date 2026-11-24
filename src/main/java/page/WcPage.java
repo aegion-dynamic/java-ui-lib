@@ -1,23 +1,32 @@
 package page;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+
+import page.form.Mono;
 
 /**
  * The WC page body. The top bar, the footer, and the COG/SOG panel stay
@@ -33,10 +42,22 @@ public class WcPage {
     private static final Color CYAN = new Color(0, 206, 209);
     private static final Color INK = new Color(16, 18, 20);
     private static final Color PURPLE = new Color(198, 140, 226);
+    private static final Color LABEL_BG = new Color(58, 58, 62);
+    private static final Color OUTPUT_BG = new Color(176, 176, 176);
+    private static final Color GRID = new Color(96, 96, 100);
+    private static final Color BOX_LINE = new Color(120, 120, 124);
+    private static final Color SEND = new Color(32, 148, 232);
     private static final int ROW = 26;
+    private static final int PARAM_ROW = 22;
 
     private final JPanel body;
     private final JPanel side;
+    private JLabel trajectoryTitle;
+    private JPanel trajectoryBlock;
+    private CardLayout trajectoryCards;
+    private JPanel trajectoryDeck;
+    private JComboBox trajectoryTubes;
+    private boolean choosingTube;
 
     public WcPage() {
         body = body();
@@ -107,9 +128,9 @@ public class WcPage {
 
         column.add(section("Gauges", gaugesBody(), true));
         column.add(gap());
-        column.add(section("Torpedo Trajectory - Tube:06", blankBody(), false));
+        column.add(trajectorySection());
         column.add(gap());
-        column.add(section("Torpedo Parameters", blankBody(), false));
+        column.add(section("Torpedo Parameters", torpedoParameters(), false));
         column.add(gap());
         column.add(section("Demon Spectrum", blankBody(), false));
         column.add(gap());
@@ -154,6 +175,359 @@ public class WcPage {
         body.add(bar(RED));
         body.add(gap());
         return body;
+    }
+
+    /**
+     * Torpedo Trajectory. Tubes are 01 through 06. Each tube keeps its own fields.
+     * The cyan title shows the tube that is selected.
+     */
+    private JPanel trajectorySection() {
+        trajectoryTitle = new JLabel("Torpedo Trajectory - Tube:06", SwingConstants.CENTER);
+        trajectoryTitle.setForeground(INK);
+        trajectoryTitle.setFont(new Font("Dialog", Font.PLAIN, 13));
+        trajectoryTitle.setBorder(BorderFactory.createEmptyBorder(2, 8, 2, 8));
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(CYAN);
+        header.setOpaque(true);
+        header.setPreferredSize(new Dimension(280, ROW));
+        header.setMaximumSize(new Dimension(Integer.MAX_VALUE, ROW));
+        header.setAlignmentX(0f);
+        header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        header.add(trajectoryTitle, BorderLayout.CENTER);
+        header.add(arrows(INK), BorderLayout.EAST);
+
+        final JPanel block = trajectoryBody();
+        trajectoryBlock = block;
+        block.setVisible(false);
+        MouseAdapter toggle = new MouseAdapter() {
+            public void mousePressed(MouseEvent event) {
+                block.setVisible(!block.isVisible());
+                block.getParent().revalidate();
+                block.getParent().repaint();
+            }
+        };
+        listen(header, toggle);
+
+        JPanel group = new JPanel();
+        group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+        group.setOpaque(false);
+        group.setAlignmentX(0f);
+        group.add(header);
+        group.add(block);
+        return group;
+    }
+
+    /** Show one tube, 01 through 06, and open the trajectory section. */
+    public void showTube(String tube) {
+        if (choosingTube || tube == null) {
+            return;
+        }
+        choosingTube = true;
+        trajectoryTubes.setSelectedItem(tube);
+        trajectoryCards.show(trajectoryDeck, tube);
+        trajectoryTitle.setText("Torpedo Trajectory - Tube:" + tube);
+        trajectoryBlock.setVisible(true);
+        trajectoryBlock.getParent().revalidate();
+        trajectoryBlock.getParent().repaint();
+        choosingTube = false;
+    }
+
+    private JPanel trajectoryBody() {
+        final String[] tubes = {"01", "02", "03", "04", "05", "06"};
+        trajectoryCards = new CardLayout();
+        trajectoryDeck = new JPanel(trajectoryCards);
+        trajectoryDeck.setOpaque(false);
+        for (int i = 0; i < tubes.length; i++) {
+            trajectoryDeck.add(trajectoryForm(), tubes[i]);
+        }
+        trajectoryCards.show(trajectoryDeck, "06");
+
+        trajectoryTubes = new JComboBox(tubes);
+        trajectoryTubes.setSelectedItem("06");
+        trajectoryTubes.setFont(new Font("Dialog", Font.PLAIN, 11));
+        trajectoryTubes.setBackground(Color.WHITE);
+        trajectoryTubes.setForeground(INK);
+        trajectoryTubes.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                showTube((String) trajectoryTubes.getSelectedItem());
+            }
+        });
+
+        JPanel shell = new JPanel(new BorderLayout());
+        shell.setBackground(Color.WHITE);
+        shell.setOpaque(true);
+        shell.setBorder(BorderFactory.createLineBorder(BOX_LINE));
+        shell.add(trajectoryTubes, BorderLayout.CENTER);
+
+        JPanel stack = new JPanel();
+        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setOpaque(false);
+        stack.setAlignmentX(0f);
+        stack.add(gap());
+        stack.add(trajRow(null, sideField("Tube", shell)));
+        stack.add(gap());
+        stack.add(trajectoryDeck);
+        return stack;
+    }
+
+    /** One tube. Left bars are output. White boxes on the right are input. */
+    private JPanel trajectoryForm() {
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.setOpaque(false);
+        form.setAlignmentX(0f);
+        form.add(trajRow(greyBar("RT", readout("0:0:0")), sideField("Max RT", whiteBox())));
+        form.add(gap());
+        form.add(trajRow(greyBar("WTB", null), null));
+        form.add(gap());
+        form.add(trajRow(greyBar("TTHB", null), sideField("TTVB", whiteBox())));
+        form.add(gap());
+        form.add(trajRow(greyBar("WR", null), sideField("ApfDtn", whiteBox())));
+        form.add(gap());
+        form.add(trajRow(greyBar("Achm", null), null));
+        form.add(gap());
+        form.add(trajRow(greyBar("NDB", null), null));
+        form.add(gap());
+        form.add(trajRow(greyBar("Lat", null), sideField("Lon", whiteBox())));
+        form.add(gap());
+        form.add(trajRow(greyBar("TTR", null), sideField("WTR", whiteBox())));
+        form.add(gap());
+        form.add(trajRow(greyBar("WCo", null), null));
+        form.add(gap());
+        form.add(trajRow(greyBar("WSp", null), null));
+        form.add(gap());
+        form.add(trajRow(greyBar("WDp", null), null));
+        form.add(gap());
+        form.add(trajRow(greyBar("TGT ID", tinyChoice()), sendBox()));
+        return form;
+    }
+
+    private static JPanel trajRow(JComponent left, JComponent right) {
+        JPanel line = new JPanel(new GridLayout(1, 2, 6, 0));
+        line.setOpaque(false);
+        line.setPreferredSize(new Dimension(280, PARAM_ROW));
+        line.setMaximumSize(new Dimension(Integer.MAX_VALUE, PARAM_ROW));
+        line.setAlignmentX(0f);
+        line.add(left == null ? spacer() : left);
+        line.add(right == null ? spacer() : right);
+        return line;
+    }
+
+    private static JPanel spacer() {
+        JPanel blank = new JPanel();
+        blank.setOpaque(false);
+        return blank;
+    }
+
+    /** Grey output bar. value sits at the right when the row shows one. */
+    private static JPanel greyBar(String name, JComponent value) {
+        JLabel label = new JLabel(name);
+        label.setForeground(INK);
+        label.setFont(new Font("Dialog", Font.PLAIN, 11));
+        label.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 4));
+        JPanel bar = new JPanel(new BorderLayout(4, 0));
+        bar.setBackground(OUTPUT_BG);
+        bar.setOpaque(true);
+        bar.setBorder(BorderFactory.createLineBorder(BOX_LINE));
+        bar.add(label, BorderLayout.WEST);
+        if (value != null) {
+            bar.add(value, BorderLayout.EAST);
+        }
+        return bar;
+    }
+
+    private static JTextField readout(String text) {
+        JTextField field = new JTextField(text);
+        field.setEditable(false);
+        field.setFont(new Font("Dialog", Font.PLAIN, 11));
+        field.setBackground(new Color(210, 210, 210));
+        field.setForeground(INK);
+        field.setBorder(BorderFactory.createLineBorder(BOX_LINE));
+        field.setPreferredSize(new Dimension(52, PARAM_ROW - 6));
+        return field;
+    }
+
+    private static JPanel sideField(String name, JComponent input) {
+        JLabel label = new JLabel(name);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Dialog", Font.PLAIN, 11));
+        label.setPreferredSize(new Dimension(52, PARAM_ROW));
+        JPanel line = new JPanel(new BorderLayout(4, 0));
+        line.setOpaque(false);
+        line.add(label, BorderLayout.WEST);
+        line.add(input, BorderLayout.CENTER);
+        return line;
+    }
+
+    private static JTextField whiteBox() {
+        JTextField field = new JTextField();
+        field.setFont(new Font("Dialog", Font.PLAIN, 11));
+        field.setBackground(Color.WHITE);
+        field.setForeground(INK);
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BOX_LINE),
+            BorderFactory.createEmptyBorder(0, 4, 0, 4)));
+        return field;
+    }
+
+    private static JComboBox tinyChoice() {
+        JComboBox box = new JComboBox(new String[] {""});
+        box.setFont(new Font("Dialog", Font.PLAIN, 11));
+        box.setBackground(Color.WHITE);
+        box.setForeground(INK);
+        box.setPreferredSize(new Dimension(56, PARAM_ROW - 6));
+        return box;
+    }
+
+    private static JPanel sendBox() {
+        JLabel send = new JLabel("Send", SwingConstants.CENTER);
+        send.setForeground(Color.WHITE);
+        send.setFont(new Font("Dialog", Font.PLAIN, 12));
+        JPanel hold = new JPanel(new BorderLayout());
+        hold.setBackground(SEND);
+        hold.setOpaque(true);
+        hold.setBorder(BorderFactory.createLineBorder(BOX_LINE));
+        hold.setPreferredSize(new Dimension(72, PARAM_ROW));
+        hold.add(send, BorderLayout.CENTER);
+        JPanel align = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        align.setOpaque(false);
+        align.add(hold);
+        return align;
+    }
+
+    /**
+     * Torpedo Parameters. Grey cells are the output and stay disabled.
+     * White cells are the input. A choice cell uses the command list.
+     */
+    private JPanel torpedoParameters() {
+        JPanel table = new JPanel();
+        table.setLayout(new BoxLayout(table, BoxLayout.Y_AXIS));
+        table.setBackground(GRID);
+        table.setOpaque(true);
+        table.setAlignmentX(0f);
+        table.add(paramLine("Enable Dist", outputCell(), inputField()));
+        table.add(paramLine("SA Pattern", outputCell(), inputChoice(
+            new String[] {"Auto", "SP1", "SP2", "SP3", "SP4", "SP5", "SP6"}, "Auto")));
+        table.add(paramLine("SA Width", outputCell(), inputField()));
+        table.add(paramLine("SA Length", outputCell(), inputField()));
+        table.add(paramLine("ASH", outputCell(), inputField()));
+        table.add(paramLine("UDL", outputCell(), inputField()));
+        table.add(paramLine("LDL", outputCell(), inputField()));
+        table.add(paramLine("ACHM", outputCell(), inputChoice(
+            new String[] {"Acoustic", "wake"}, "Acoustic")));
+        table.add(paramLine("Acoustic Mode", outputCell(), inputChoice(
+            new String[] {"Simultaneous", "Passive"}, "Simultaneous")));
+        table.add(paramLine("Attack Mode", outputCell(), inputChoice(
+            new String[] {"Sub Surface", "Surface"}, "Sub Surface")));
+        table.add(paramLine("Wake Sens", outputCell(), inputChoice(
+            new String[] {"ON", "OFF"}, "OFF")));
+        table.add(paramLine("Fuse", outputCell(), inputChoice(
+            new String[] {"Auto", "ON", "OFF"}, "Auto")));
+        table.add(paramLine("Home Enab", outputCell(), inputChoice(
+            new String[] {"ON", "OFF"}, "ON")));
+        table.add(paramLine("Int Guide Mode", outputCell(), inputChoice(
+            new String[] {"Auto", "Pursuit", "PN"}, "Auto")));
+        table.add(paramLine("Torpedo Stop", outputCell(), inputChoice(
+            new String[] {"Running", "E Stop", "Stop"}, "Stop")));
+        table.add(paramLine("Homing Contact", outputBadge("P Mod A"), outputCell()));
+        table.add(paramLine("Battery Voltage", outputBadge("P Mod B"), outputCell()));
+        table.add(paramLine("Motor Current", outputCell(), inputField()));
+        table.add(paramLine("FOC Recap", outputCell(), inputField()));
+        table.add(paramLine("Bin Pressure", outputCell(), inputField()));
+        table.add(paramLine("ACCHM Echo", outputCell(), inputField()));
+        table.add(sendLine());
+        return table;
+    }
+
+    /** Label, grey output, white input. */
+    private static JPanel paramLine(String name, JComponent output, JComponent input) {
+        JPanel values = new JPanel(new GridLayout(1, 2, 2, 0));
+        values.setOpaque(false);
+        values.add(output);
+        values.add(input);
+        return paramRow(name, values);
+    }
+
+    private static JPanel sendLine() {
+        JLabel send = new JLabel("Send", SwingConstants.CENTER);
+        send.setForeground(Color.WHITE);
+        send.setFont(new Font("Dialog", Font.PLAIN, 12));
+        JPanel hold = new JPanel(new BorderLayout());
+        hold.setBackground(SEND);
+        hold.setOpaque(true);
+        hold.setBorder(BorderFactory.createLineBorder(BOX_LINE));
+        hold.add(send, BorderLayout.CENTER);
+        return paramRow("Wire Guidance Mode", hold);
+    }
+
+    private static JPanel paramRow(String name, JComponent values) {
+        JPanel line = new JPanel(new BorderLayout(1, 0));
+        line.setOpaque(false);
+        line.setPreferredSize(new Dimension(280, PARAM_ROW));
+        line.setMaximumSize(new Dimension(Integer.MAX_VALUE, PARAM_ROW));
+        line.setAlignmentX(0f);
+        line.add(nameCell(name), BorderLayout.WEST);
+        line.add(values, BorderLayout.CENTER);
+        return line;
+    }
+
+    private static JPanel nameCell(String name) {
+        JLabel label = new JLabel(name);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Dialog", Font.PLAIN, 11));
+        label.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 4));
+        JPanel cell = new JPanel(new BorderLayout());
+        cell.setBackground(LABEL_BG);
+        cell.setOpaque(true);
+        cell.setPreferredSize(new Dimension(118, PARAM_ROW));
+        cell.add(label, BorderLayout.CENTER);
+        return cell;
+    }
+
+    /** Grey output. It stays disabled until a launch fills it. */
+    private static JPanel outputCell() {
+        JPanel cell = new JPanel();
+        cell.setBackground(OUTPUT_BG);
+        cell.setOpaque(true);
+        cell.setBorder(BorderFactory.createLineBorder(BOX_LINE));
+        return cell;
+    }
+
+    private static JPanel outputBadge(String text) {
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Dialog", Font.PLAIN, 11));
+        JPanel cell = new JPanel(new BorderLayout());
+        cell.setBackground(INK);
+        cell.setOpaque(true);
+        cell.setBorder(BorderFactory.createLineBorder(BOX_LINE));
+        cell.add(label, BorderLayout.CENTER);
+        return cell;
+    }
+
+    /** White input. Digits and one decimal point. */
+    private static JTextField inputField() {
+        JTextField field = Mono.number(4);
+        field.setFont(new Font("Dialog", Font.PLAIN, 11));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BOX_LINE),
+            BorderFactory.createEmptyBorder(0, 4, 0, 4)));
+        return field;
+    }
+
+    private static JComponent inputChoice(String[] items, String selected) {
+        JComboBox box = new JComboBox(items);
+        box.setSelectedItem(selected);
+        box.setFont(new Font("Dialog", Font.PLAIN, 11));
+        box.setBackground(Color.WHITE);
+        box.setForeground(INK);
+        JPanel shell = new JPanel(new BorderLayout());
+        shell.setBackground(Color.WHITE);
+        shell.setOpaque(true);
+        shell.setBorder(BorderFactory.createLineBorder(BOX_LINE));
+        shell.add(box, BorderLayout.CENTER);
+        return shell;
     }
 
     /** Closed drop-downs open onto an empty dark block. */

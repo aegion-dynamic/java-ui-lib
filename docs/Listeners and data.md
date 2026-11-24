@@ -215,21 +215,21 @@ OK stores it with `WeaponConfigService.create`, calls `parameters.applyWeapon(co
 
 | On the form | On `WeaponConfig` |
 |---|---|
-| EHWT WAR / EHWT EXE | `WeaponType` `getWeapon` / `setWeapon` |
-| Config name | `String` `getConfigName` / `setConfigName` |
-| Initial Speed, Search Speed | `Speed` in knots. `getInitialSpeed`, `getSearchSpeed` |
-| Ordered Speed | `Speed` in knots. `getOrderedSpeed` |
-| Ordered Depth | `Depth` in metres. `getOrderedDepth` |
-| Enb Dist, UDL, LDL, Max RD | `Distance` in metres, a float. `getEnbDist`, `getUdl`, `getLdl`, `getMaxRd` |
-| ASH | `AcousticHeadMode` `getAsh`. ON or OFF |
-| Acoustic Head Mode | text `getAcousticHeadMode`. Passive, Simultaneous, or Wake |
-| Sonar Range, Homing Mode | still text. Sonar Range is only on Attack |
+| EHWT WAR / EHWT EXE | `WeaponConfigState` `getWeapon` / `setWeapon` |
+| Config name | `char[]` `getConfigName`. `configNameText()` is the text |
+| Initial Speed, Ordered Speed, Search Speed | `double` knots. `toInitialSpeed`, `toOrderedSpeed`, `toSearchSpeed` build a `Speed` |
+| Ordered Depth | `double` metres. `toOrderedDepth` builds a `Depth` |
+| Enb Dist, UDL, LDL, Max RD | `float` metres. `toEnbDist`, `toUdl`, `toLdl`, `toMaxRd` build a `Distance` |
+| ASH | `OnOff` `getAsh`. OFF or ON |
+| Acoustic Head Mode | `AcousticHeadMode` `getAcousticHeadMode`. Passive, Simultaneous, or Wake |
+| Sonar Range | `float` metres. `toSonarRange` builds a `Distance`. Only on Attack |
 | Attack Mode | `TargetType` `getAttackMode` |
-| Wake Guidance | `GuidanceMode` `getWakeGuidance`. ON or OFF |
-| Guidance Mode | `InternalGuidanceMode` `getGuidanceMode` |
+| Wake Guidance | `OnOff` `getWakeGuidance`. OFF or ON |
+| Guidance Mode | `GuidanceMode` `getGuidanceMode` |
+| Homing Mode | `InternalGuidanceMode` `getHomingMode` |
 | WC Comments | `getComments` / `setComments` |
 
-Drop-down lists: Initial Speed is 24, 30, 35, 40, 45, 50 knots. ASH (`AcousticHeadMode`) is ON, OFF. Acoustic Head Mode is Passive, Simultaneous, Wake. Wake Guidance (`GuidanceMode`) is ON, OFF. Attack Mode (`TargetType`) is Sub Surface, Surface. Guidance Mode (`InternalGuidanceMode`) is Bg Rider Out, CCM, TCCM, Self Guided. Homing Mode is Pro Navigation, Intercept. An untouched choice is stored as `null`. An untouched text drop-down is stored as `""`.
+Drop-down lists: Initial Speed is 24, 30, 35, 40, 45, 50 knots. ASH and Wake Guidance (`OnOff`) are OFF, ON. Acoustic Head Mode (`AcousticHeadMode`) is Passive, Simultaneous, Wake. Attack Mode (`TargetType`) is Sub Surface, Surface. Guidance Mode (`GuidanceMode`) is Bg Rider Out, CCM, TCCM, Self Guided. Homing Mode (`InternalGuidanceMode`) is Pro Navigation, Intercept. An untouched choice is stored as `null`. An untouched text drop-down is stored as `""`.
 
 ---
 
