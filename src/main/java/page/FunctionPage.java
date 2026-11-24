@@ -38,7 +38,9 @@ import page.model.WeaponConfig;
  * The second key opens Modify Weapon Configuration. The third opens Delete Weapon Config.
  * F7 opens List of Engagements. The chosen name fills the Create Engagement fields, and the fields stay read-only.
  * F8 opens List of Weapon Configurations. The chosen name fills the fields, and the fields stay read-only.
- * The drop-down in the top bar chooses Eng or WC. Eng is this screen. WC is the depth-window page.
+ * The drop-down in the top bar chooses Eng or WC.
+ * The top bar, the footer, and the COG/SOG panel stay on both pages.
+ * WC replaces the left side and the area under COG/SOG.
  * F4 swaps the footer to a second set of buttons.
  * A second F4 restores the first set. The other methods are empty
  * on purpose: fill those in with the functions from the real project.
@@ -63,8 +65,8 @@ public class FunctionPage extends JFrame {
 
     /** Words beside the blue squares on the WC page. */
     private static final String[] WC_TEXT = {
-        "CFM", "BG RIDER IN", "BG RIDER OUT", "OFFSET", "MANU", "--------",
-        "TDISP", "--------", "--------", "Send WDATA", "TCCM", "WAKE"
+        "Guid Mode", "LL BR Out", "BR In", "CCM", "TCCM", "Self Guidance",
+        "Manu", "WG End", "Avoid Target", "LLCH-M", "--------", "Stop"
     };
 
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
@@ -94,8 +96,12 @@ public class FunctionPage extends JFrame {
     private FunctionKeyBar footer;
     private boolean secondSet;
     private boolean wcPage;
-    private final CardLayout screenCards = new CardLayout();
-    private final JPanel screenSlot = new JPanel(screenCards);
+    private final CardLayout leftCards = new CardLayout();
+    private final JPanel leftSlot = new JPanel(leftCards);
+    private final CardLayout rightCards = new CardLayout();
+    private final JPanel rightBody = new JPanel(rightCards);
+    private final JPanel rightColumn = new JPanel(new BorderLayout(0, 4));
+    private final MotionReadout readout = new MotionReadout();
     private final JComboBox pageChoice = new JComboBox(new String[] {"Eng", "WC"});
 
     /**
@@ -372,25 +378,30 @@ public class FunctionPage extends JFrame {
         formSlot.add(listEngagementForm, "listEngagement");
         formCards.show(formSlot, "parameters");
 
-        JPanel right = new JPanel(new BorderLayout(0, 4));
-        right.setOpaque(false);
-        right.setPreferredSize(new Dimension(FORM_WIDTH, 100));
-        right.add(new MotionReadout(), BorderLayout.NORTH);
-        right.add(formSlot, BorderLayout.CENTER);
+        WcPage wc = new WcPage();
+        leftSlot.setOpaque(false);
+        leftSlot.add(left, "eng");
+        leftSlot.add(wc.getBody(), "wc");
+        leftCards.show(leftSlot, "eng");
+
+        rightBody.setOpaque(false);
+        rightBody.add(formSlot, "eng");
+        rightBody.add(wc.getSide(), "wc");
+        rightCards.show(rightBody, "eng");
+
+        rightColumn.setOpaque(false);
+        rightColumn.setPreferredSize(new Dimension(FORM_WIDTH, 100));
+        rightColumn.add(readout, BorderLayout.NORTH);
+        rightColumn.add(rightBody, BorderLayout.CENTER);
 
         JPanel stage = new JPanel(new BorderLayout(4, 0));
         stage.setBackground(DARK);
         stage.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-        stage.add(left, BorderLayout.CENTER);
-        stage.add(right, BorderLayout.EAST);
-
-        screenSlot.setOpaque(false);
-        screenSlot.add(stage, "eng");
-        screenSlot.add(new WcPage(), "wc");
-        screenCards.show(screenSlot, "eng");
+        stage.add(leftSlot, BorderLayout.CENTER);
+        stage.add(rightColumn, BorderLayout.EAST);
 
         page.add(topBar, BorderLayout.NORTH);
-        page.add(screenSlot, BorderLayout.CENTER);
+        page.add(stage, BorderLayout.CENTER);
 
         /* bar height, button width, button height — change these to fit the other screen */
         footer = new FunctionKeyBar(64, 96, 40, functionListener);
@@ -442,17 +453,22 @@ public class FunctionPage extends JFrame {
         Object item = pageChoice.getSelectedItem();
         if ("WC".equals(item)) {
             wcPage = true;
-            screenCards.show(screenSlot, "wc");
+            leftCards.show(leftSlot, "wc");
+            rightCards.show(rightBody, "wc");
+            rightColumn.setPreferredSize(new Dimension(300, 100));
             footer.setLabels(FunctionKeyBar.KEYS, WC_TEXT);
         } else {
             wcPage = false;
-            screenCards.show(screenSlot, "eng");
+            leftCards.show(leftSlot, "eng");
+            rightCards.show(rightBody, "eng");
+            rightColumn.setPreferredSize(new Dimension(FORM_WIDTH, 100));
             if (secondSet) {
                 footer.setLabels(SECOND_KEYS, SECOND_TEXT);
             } else {
                 footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
             }
         }
+        rightColumn.revalidate();
     }
 
     /** The page that is showing when the window opens, and after OK or Cancel. */

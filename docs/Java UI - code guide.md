@@ -6,7 +6,8 @@ This project is a practice screen you can copy into a larger Java 1.6 program.
 |---|---|
 | `src/main/java/page/FunctionKeyBar.java` | The footer. Draws twelve buttons. F4 swaps them for a second set. Does not decide what they do. |
 | `src/main/java/page/FunctionPage.java` | The window. Owns the one listener and the functions (`create()` and the rest). |
-| `src/main/java/page/MotionReadout.java` | The strip above the form. COG, then SOG in Kt and DSM in m. |
+| `src/main/java/page/MotionReadout.java` | COG, SOG, and DSM. The same panel sits above the form on Eng and above the WC drop-downs. |
+| `src/main/java/page/WcPage.java` | The WC body. A note and the Depth Window on the left. Five drop-downs on the right. |
 | `src/main/java/page/EngagementParametersPanel.java` | Engagement Parameters. Shown when the window opens, and again after OK or Cancel on every form. |
 | `src/main/java/page/CreateEngagementPanel.java` | Create Engagement. F1 opens it empty. OK stores it and returns to Engagement Parameters. |
 | `src/main/java/page/ModifyEngagementPanel.java` | Modify Engagement. F2 opens it. The name drop-down chooses which stored engagement to load. |

@@ -25,7 +25,7 @@ Java itself
 This project
     page.FunctionPage                  the window
     page.FunctionKeyBar                the F1–F12 footer
-    page.MotionReadout                 COG, SOG, and DSM above the form
+    page.MotionReadout                 COG, SOG, and DSM, shared by Eng and WC
     page.EngagementParametersPanel     lower-right form when the window opens
     page.CreateEngagementPanel      lower-right form after F1
     page.CreateWeaponConfigPanel      weapon form after F4, then the F1 key

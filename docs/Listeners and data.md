@@ -281,7 +281,7 @@ Choosing a name calls `apply` for that `Engagement`. The fields show the stored 
 
 `src/main/java/page/MotionReadout.java`
 
-The strip above the form. COG is a title. SOG shows knots. DSM shows metres. No listener. No button.
+The strip above the form, and the same strip above the WC drop-downs. COG is a title. SOG shows knots. DSM shows metres. No listener. No button.
 
 `setSog(String)` and `setDsm(String)` replace the dashes. `""` puts the dashes back. `getSog()` and `getDsm()` return `""` while the dashes are showing. Call these from the same place that already receives speed and distance. Do not read the labels from another thread.
 
