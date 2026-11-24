@@ -66,7 +66,7 @@ public class FunctionPage extends JFrame {
     /** Words beside the blue squares on the WC page. */
     private static final String[] WC_TEXT = {
         "Guid Mode", "LL BR Out", "BR In", "CCM", "TCCM", "Self Guidance",
-        "Manu", "WG End", "Avoid Target", "LLCH-M", "--------", "Stop"
+        "Manu", "WG End", "Avoid Target", "LLCHM", "--------", "Stop"
     };
 
     /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
