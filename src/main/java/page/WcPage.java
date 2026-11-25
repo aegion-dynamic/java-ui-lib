@@ -52,6 +52,7 @@ public class WcPage {
 
     private final JPanel body;
     private final JPanel side;
+    private DepthGraph depthGraph;
     private JLabel trajectoryTitle;
     private JPanel trajectoryBlock;
     private CardLayout trajectoryCards;
@@ -108,15 +109,48 @@ public class WcPage {
     }
 
     private JPanel depthWindow() {
-        JPanel depth = new JPanel(new GridBagLayout());
+        JPanel depth = new JPanel(new BorderLayout());
         depth.setBackground(new Color(18, 18, 20));
-        depth.setPreferredSize(new Dimension(100, 210));
+        depth.setPreferredSize(new Dimension(100, 300));
         depth.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, new Color(70, 70, 74)));
         JLabel title = new JLabel("Depth Window");
         title.setForeground(new Color(220, 220, 220));
         title.setFont(new Font("Dialog", Font.PLAIN, 16));
-        depth.add(title);
+        title.setBorder(BorderFactory.createEmptyBorder(6, 12, 0, 12));
+        depth.add(title, BorderLayout.NORTH);
+        depthGraph = new DepthGraph();
+        depth.add(depthGraph, BorderLayout.CENTER);
+        loadDummyDepth();
         return depth;
+    }
+
+    /** Temporary line so the mouse cross has a curve to sit on. Delete when real samples are wired. */
+    private void loadDummyDepth() {
+        int count = 70;
+        double[] x = new double[count];
+        double[] y = new double[count];
+        for (int i = 0; i < count; i++) {
+            double at = i * 40.0 / (count - 1);
+            x[i] = at;
+            double rise = at < 2.0 ? 0.0 : (1.0 - Math.exp(-(at - 2.0) / 3.5));
+            y[i] = 8.7 * rise;
+        }
+        depthGraph.setBulk(x, y);
+    }
+
+    /** Replace the Depth Window line. The mouse still owns the cross. */
+    public void setDepthBulk(double[] x, double[] y) {
+        depthGraph.setBulk(x, y);
+    }
+
+    /** Append one Depth Window sample. The mouse still owns the cross. */
+    public void addDepthPoint(double x, double y) {
+        depthGraph.addPoint(x, y);
+    }
+
+    /** Clear the Depth Window line. The axes stay. */
+    public void clearDepth() {
+        depthGraph.clear();
     }
 
     private JPanel side() {

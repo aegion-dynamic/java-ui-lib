@@ -12,8 +12,8 @@ There is one `FunctionKeyBar`, added once with `BorderLayout.SOUTH`. Do not put 
 |---|---|---|
 | The twelve buttons | the same objects | the same objects |
 | The blue F1–F12 squares | unchanged | unchanged |
-| The words | Create, Modify, Delete, … or the set after F4 | Guid Mode, LL BR Out, BR In, … |
-| The method that runs | `create()`, `onF2()`, … | `onGuidMode()`, `onLlBrOut()`, … |
+| The words | Create WC, Modify, Delete, List WC, List Eng | Guid Mode, LL BR Out, BR In, … |
+| The method that runs | `onF1()` create weapon, `onF2()` modify, … | `onGuidMode()`, `onLlBrOut()`, … |
 
 `setLabels` is the only call that switches the bar:
 
@@ -58,17 +58,13 @@ if ("WC".equals(item)) {
     wcPage = false;
     leftCards.show(leftSlot, "eng");
     rightCards.show(rightBody, "eng");
-    if (secondSet) {
-        footer.setLabels(SECOND_KEYS, SECOND_TEXT);
-    } else {
-        footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
-    }
+    footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
 }
 ```
 
-Eng has two word sets of its own. F4 flips `secondSet` and the commands become `"B1"`, `"B2"`, and the rest. Coming back from WC must restore the set that was showing, not always the first set. `secondSet` is that memory. WC does not change `secondSet`.
+Eng has one word set. F1 is Create WC, F2 Modify, F3 Delete, F4 List WC, F5 List Eng. Coming back from WC restores that set. There is no second Eng set and no swap key on Eng.
 
-WC has a second word set of its own. F7 swaps the bottom bar. The first set is Guid Mode through Stop, and F7 reads Manu. The swapped set is Tube 1, LL Tube 2, Tube 3, Tube 4, Tube 5, Tube 6, TORPS, and the same F8 through F12. F7 reads TORPS there, and pressing it swaps back. Tube 1 through Tube 6 open that tube on Torpedo Trajectory. `wcTubeSet` remembers which WC set is showing, the same way `secondSet` remembers the Eng set.
+WC has a second word set of its own. F7 swaps the bottom bar. The first set is Guid Mode through Stop, and F7 reads Manu. The swapped set is Tube 1, LL Tube 2, Tube 3, Tube 4, Tube 5, Tube 6, TORPS, and the same F8 through F12. F7 reads TORPS there, and pressing it swaps back. Tube 1 through Tube 6 open that tube on Torpedo Trajectory. `wcTubeSet` remembers which WC set is showing.
 
 `setLabels` also rebinds the physical F-keys. The map name is the key code (`function-112` for F1), so the new command replaces the old one. A click and a keypress send the same command to the same listener.
 
@@ -86,11 +82,11 @@ public void actionPerformed(ActionEvent event) {
         return;
     }
     if ("F1".equals(key)) {
-        create();
-    } else if ("B1".equals(key)) {
-        onB1();
+        onF1();
+    } else if ("F2".equals(key)) {
+        onF2();
     }
-    // the rest of the Eng keys
+    // F3 delete weapon, F4 list weapon, F5 list engagement
 }
 
 private void onWcKey(String key) {
@@ -130,8 +126,8 @@ On the other machine the body of `onGuidMode()` is the call they already have fo
 
 - The sample listener returns immediately when `wcPage` is true, before any `if`. The WC words show, and no operation runs. Replace that bare `return` with `onWcKey(key)`, as in section 3.
 - Do not test the caption. `"Guid Mode".equals(key)` is never true. The command is `"F1"`.
-- Do not build the WC operations by copying the Eng branch. F1 would open Create Engagement while the WC page is showing.
-- F4 on Eng swaps the Eng word set. F4 on WC is CCM. The swap must sit in the Eng branch, after the `wcPage` test.
+- Do not build the WC operations by copying the Eng branch. F1 on Eng opens Create Weapon Configuration. F1 on WC is Guid Mode.
+- Eng does not swap its footer. F7 on WC swaps the WC words. That swap must sit in the WC branch, after the `wcPage` test.
 - A second footer, even inside a card that is not showing, also receives F1–F12. Keep one bar and call `setLabels`.
 - `setLabels` needs twelve commands and twelve words. A shorter array throws when the loop reads past the end.
 - Java 1.6 has no `switch` on a `String`. The chain of `else if` is the branch.

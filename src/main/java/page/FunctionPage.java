@@ -29,38 +29,23 @@ import page.model.WeaponConfig;
 /**
  * The screen. One listener handles every footer button.
  * The window opens with Engagement Parameters in the lower-right form slot.
- * F1 calls create() and puts a blank Create Engagement form in that slot.
- * OK on that form stores it and returns to Engagement Parameters.
- * F2 calls onF2() and opens ModifyEngagementPanel.
- * The name drop-down lists engagements already stored. The chosen name fills the form.
- * F3 calls onF3() and shows Delete Engagement.
- * After F4, the first key is command B1. It opens Create Weapon Configuration.
- * The second key opens Modify Weapon Configuration. The third opens Delete Weapon Config.
- * F7 opens List of Engagements. The chosen name fills the Create Engagement fields, and the fields stay read-only.
- * F8 opens List of Weapon Configurations. The chosen name fills the fields, and the fields stay read-only.
+ * F1 opens Create Weapon Configuration. F2 opens Modify Weapon Configuration.
+ * F3 opens Delete Weapon Config. F4 opens List of Weapon Configurations.
+ * F5 opens List of Engagements. That list is the Engagement Parameters form,
+ * read-only, and ENGM chooses which stored engagement to show.
  * The drop-down in the top bar chooses Eng or WC.
  * The top bar, the footer, and the COG/SOG panel stay on both pages.
  * WC replaces the left side and the area under COG/SOG.
- * F4 swaps the footer to a second set of buttons.
- * A second F4 restores the first set. The other methods are empty
- * on purpose: fill those in with the functions from the real project.
- *
- * To drop this into an existing window, copy the listener and the
- * create() method, then add the bar with BorderLayout.SOUTH.
+ * F7 on WC swaps that page's footer. Eng has one footer and does not swap.
  */
 public class FunctionPage extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    /** Commands for the second set. Slot 4 stays "F4" so the same key can switch back. */
-    private static final String[] SECOND_KEYS = {
-        "B1", "B2", "B3", "F4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12"
-    };
-
-    /** Words beside the blue F1–F12 squares on the first set. */
+    /** Words beside the blue F1–F12 squares on the Eng page. */
     private static final String[] FIRST_TEXT = {
-        "Create", "Modify", "Delete", "Swap", "Op 5", "Op 6",
-        "Engs", "List", "Op 9", "Op 10", "Op 11", "Op 12"
+        "Create WC", "Modify", "Delete", "List WC", "List Eng", "Op 6",
+        "Op 7", "Op 8", "Op 9", "Op 10", "Op 11", "Op 12"
     };
 
     /** Words beside the blue squares on the WC page. */
@@ -75,12 +60,6 @@ public class FunctionPage extends JFrame {
         "TORPS", "WG End", "Avoid Target", "LLCHM", "--------", "Stop"
     };
 
-    /** Words beside the blue squares after F4. Slot 4 stays "Swap". */
-    private static final String[] SECOND_TEXT = {
-        "WConfig", "Modify", "Delete", "Swap", "Alt 5", "Alt 6",
-        "Alt 7", "Alt 8", "Alt 9", "Alt 10", "Alt 11", "Alt 12"
-    };
-
     private static final Color BLUE = new Color(46, 134, 222);
     private static final Color DARK = new Color(28, 28, 30);
     private static final int FORM_WIDTH = 640;
@@ -89,9 +68,6 @@ public class FunctionPage extends JFrame {
     private final CardLayout formCards = new CardLayout();
     private final JPanel formSlot = new JPanel(formCards);
     private EngagementParametersPanel parameters;
-    private CreateEngagementPanel form;
-    private ModifyEngagementPanel modifyForm;
-    private DeleteEngagementPanel deleteForm;
     private CreateWeaponConfigPanel weaponForm;
     private ModifyWeaponConfigPanel modifyWeaponForm;
     private DeleteWeaponConfigPanel deleteWeaponForm;
@@ -100,7 +76,6 @@ public class FunctionPage extends JFrame {
     private EngagementService backend;
     private WeaponConfigService weaponBackend;
     private FunctionKeyBar footer;
-    private boolean secondSet;
     private boolean wcPage;
     private boolean wcTubeSet;
     private WcPage wcPagePanel;
@@ -128,14 +103,14 @@ public class FunctionPage extends JFrame {
                 return;
             }
 
-            if ("F4".equals(key)) {
-                onF4();
-            } else if ("F1".equals(key)) {
-                create();
+            if ("F1".equals(key)) {
+                onF1();
             } else if ("F2".equals(key)) {
                 onF2();
             } else if ("F3".equals(key)) {
                 onF3();
+            } else if ("F4".equals(key)) {
+                onF4();
             } else if ("F5".equals(key)) {
                 onF5();
             } else if ("F6".equals(key)) {
@@ -152,28 +127,6 @@ public class FunctionPage extends JFrame {
                 onF11();
             } else if ("F12".equals(key)) {
                 onF12();
-            } else if ("B1".equals(key)) {
-                onB1();
-            } else if ("B2".equals(key)) {
-                onB2();
-            } else if ("B3".equals(key)) {
-                onB3();
-            } else if ("B5".equals(key)) {
-                onB5();
-            } else if ("B6".equals(key)) {
-                onB6();
-            } else if ("B7".equals(key)) {
-                onB7();
-            } else if ("B8".equals(key)) {
-                onB8();
-            } else if ("B9".equals(key)) {
-                onB9();
-            } else if ("B10".equals(key)) {
-                onB10();
-            } else if ("B11".equals(key)) {
-                onB11();
-            } else if ("B12".equals(key)) {
-                onB12();
             }
         }
     };
@@ -218,9 +171,6 @@ public class FunctionPage extends JFrame {
             /* Keep the look that is already installed. */
         }
         parameters = new EngagementParametersPanel();
-        form = new CreateEngagementPanel();
-        modifyForm = new ModifyEngagementPanel();
-        deleteForm = new DeleteEngagementPanel();
         weaponForm = new CreateWeaponConfigPanel();
         modifyWeaponForm = new ModifyWeaponConfigPanel();
         deleteWeaponForm = new DeleteWeaponConfigPanel();
@@ -233,61 +183,6 @@ public class FunctionPage extends JFrame {
         }
         backend = new EngagementService();
         weaponBackend = new WeaponConfigService();
-        form.getOkButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                Engagement engagement = form.readForm();
-                backend.create(engagement);
-                resultLabel.setText("Saved " + engagement.getField1()
-                        + " / " + engagement.getGroup1());
-                showParameters();
-            }
-        });
-        modifyForm.addNameListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                if (modifyForm.isFilling()) {
-                    return;
-                }
-                Engagement selected = backend.findByName(modifyForm.getSelectedName());
-                if (selected != null) {
-                    modifyForm.apply(selected);
-                }
-            }
-        });
-        modifyForm.getOkButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                Engagement engagement = modifyForm.readForm();
-                backend.update(engagement);
-                resultLabel.setText("Modified " + engagement.getField1()
-                        + " / " + engagement.getGroup1());
-                showParameters();
-            }
-        });
-        modifyForm.getCancelButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                resultLabel.setText("Cancel");
-                showParameters();
-            }
-        });
-        form.getCancelButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                resultLabel.setText("Cancel");
-                showParameters();
-            }
-        });
-        deleteForm.getOkButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                String name = deleteForm.getEngName();
-                backend.deleteByName(name);
-                resultLabel.setText("Delete " + name);
-                showParameters();
-            }
-        });
-        deleteForm.getCancelButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                resultLabel.setText("Cancel");
-                showParameters();
-            }
-        });
         weaponForm.getOkButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 WeaponConfig config = weaponForm.readForm();
@@ -381,9 +276,6 @@ public class FunctionPage extends JFrame {
         formSlot.setBackground(DARK);
         formSlot.setPreferredSize(new Dimension(FORM_WIDTH, 400));
         formSlot.add(parameters, "parameters");
-        formSlot.add(form, "create");
-        formSlot.add(modifyForm, "modify");
-        formSlot.add(deleteForm, "delete");
         formSlot.add(weaponForm, "wconfig");
         formSlot.add(modifyWeaponForm, "modifyWeapon");
         formSlot.add(deleteWeaponForm, "deleteWeapon");
@@ -433,33 +325,34 @@ public class FunctionPage extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    /** F1. Puts a fresh Create Engagement form in the lower-right slot. */
-    private void create() {
-        form.resetForCreate();
-        formCards.show(formSlot, "create");
-        resultLabel.setText("Create engagement");
+    /** F1. Create Weapon Configuration. */
+    private void onF1() {
+        weaponForm.reset();
+        formCards.show(formSlot, "wconfig");
+        resultLabel.setText("Create weapon configuration");
     }
 
-    /** F2. Modify Engagement. The name drop-down picks which stored engagement to open. */
+    /** F2. Modify Weapon Configuration for the chosen config name. */
     private void onF2() {
-        String[] names = backend.names();
+        String[] names = weaponBackend.names();
         if (names.length == 0) {
-            resultLabel.setText("Create an engagement first");
+            resultLabel.setText("Create a weapon configuration first");
             return;
         }
-        modifyForm.setNames(names);
-        Engagement selected = backend.findByName(modifyForm.getSelectedName());
+        modifyWeaponForm.setNames(names);
+        WeaponConfig selected = weaponBackend.findByName(modifyWeaponForm.getSelectedName());
         if (selected != null) {
-            modifyForm.apply(selected);
+            modifyWeaponForm.apply(selected);
         }
-        formCards.show(formSlot, "modify");
-        resultLabel.setText("Modify engagement");
+        formCards.show(formSlot, "modifyWeapon");
+        resultLabel.setText("Modify weapon configuration");
     }
 
-    /** F3. Delete Engagement. Eng No lists 1, 2, and 3 until real numbers are supplied. */
+    /** F3. Delete Weapon Config. */
     private void onF3() {
-        formCards.show(formSlot, "delete");
-        resultLabel.setText("Delete engagement");
+        deleteWeaponForm.reset();
+        formCards.show(formSlot, "deleteWeapon");
+        resultLabel.setText("Delete weapon config");
     }
 
     /** F7 on the WC page. Swaps the bottom bar between the two WC word sets. */
@@ -505,11 +398,7 @@ public class FunctionPage extends JFrame {
             leftCards.show(leftSlot, "eng");
             rightCards.show(rightBody, "eng");
             rightColumn.setPreferredSize(new Dimension(FORM_WIDTH, 100));
-            if (secondSet) {
-                footer.setLabels(SECOND_KEYS, SECOND_TEXT);
-            } else {
-                footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
-            }
+            footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
         }
         rightColumn.revalidate();
     }
@@ -519,50 +408,8 @@ public class FunctionPage extends JFrame {
         formCards.show(formSlot, "parameters");
     }
 
-    /**
-     * F4 swaps the footer.
-     * The blue squares stay F1–F12. The words beside them change.
-     * The first press shows Alt 1 and the rest. The next press restores Create and the rest.
-     */
+    /** F4. List of weapon configurations. The name drop-down loads one configuration for display. */
     private void onF4() {
-        secondSet = !secondSet;
-        if (secondSet) {
-            footer.setLabels(SECOND_KEYS, SECOND_TEXT);
-            resultLabel.setText("F4 second set");
-        } else {
-            footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
-            resultLabel.setText("F4 first set");
-        }
-    }
-
-    /** F5. */
-    private void onF5() {
-        resultLabel.setText("F5");
-    }
-
-    /** F6. */
-    private void onF6() {
-        resultLabel.setText("F6");
-    }
-
-    /** F7. List of engagements. The name drop-down loads one engagement for display. */
-    private void onF7() {
-        String[] names = backend.names();
-        if (names.length == 0) {
-            resultLabel.setText("Create an engagement first");
-            return;
-        }
-        listEngagementForm.setNames(names);
-        Engagement selected = backend.findByName(listEngagementForm.getSelectedName());
-        if (selected != null) {
-            listEngagementForm.apply(selected);
-        }
-        formCards.show(formSlot, "listEngagement");
-        resultLabel.setText("List engagement");
-    }
-
-    /** F8. List of weapon configurations. The name drop-down loads one configuration for display. */
-    private void onF8() {
         String[] names = weaponBackend.names();
         if (names.length == 0) {
             resultLabel.setText("Create a weapon configuration first");
@@ -575,6 +422,37 @@ public class FunctionPage extends JFrame {
         }
         formCards.show(formSlot, "listWeapon");
         resultLabel.setText("List weapon configuration");
+    }
+
+    /** F5. List of engagements. Same form as Engagement Parameters, for display. */
+    private void onF5() {
+        String[] names = backend.names();
+        listEngagementForm.setNames(names);
+        if (names.length > 0) {
+            Engagement selected = backend.findByName(listEngagementForm.getSelectedName());
+            if (selected != null) {
+                listEngagementForm.apply(selected);
+            }
+            resultLabel.setText("List engagement");
+        } else {
+            resultLabel.setText("No engagements");
+        }
+        formCards.show(formSlot, "listEngagement");
+    }
+
+    /** F6. */
+    private void onF6() {
+        resultLabel.setText("F6");
+    }
+
+    /** F7. */
+    private void onF7() {
+        resultLabel.setText("F7");
+    }
+
+    /** F8. */
+    private void onF8() {
+        resultLabel.setText("F8");
     }
 
     /** F9. */
@@ -595,76 +473,6 @@ public class FunctionPage extends JFrame {
     /** F12. */
     private void onF12() {
         resultLabel.setText("F12");
-    }
-
-    /** F1 after the key swap. The blue square still says F1. The command is B1. */
-    private void onB1() {
-        weaponForm.reset();
-        formCards.show(formSlot, "wconfig");
-        resultLabel.setText("Create weapon configuration");
-    }
-
-    /** F2 after the key swap. Modify Weapon Configuration for the chosen config name. */
-    private void onB2() {
-        String[] names = weaponBackend.names();
-        if (names.length == 0) {
-            resultLabel.setText("Create a weapon configuration first");
-            return;
-        }
-        modifyWeaponForm.setNames(names);
-        WeaponConfig selected = weaponBackend.findByName(modifyWeaponForm.getSelectedName());
-        if (selected != null) {
-            modifyWeaponForm.apply(selected);
-        }
-        formCards.show(formSlot, "modifyWeapon");
-        resultLabel.setText("Modify weapon configuration");
-    }
-
-    /** F3 after the key swap. Delete Weapon Config. */
-    private void onB3() {
-        deleteWeaponForm.reset();
-        formCards.show(formSlot, "deleteWeapon");
-        resultLabel.setText("Delete weapon config");
-    }
-
-    /** B5. Slot 4 is F4, the swap, in both sets. */
-    private void onB5() {
-        resultLabel.setText("B5");
-    }
-
-    /** B6. */
-    private void onB6() {
-        resultLabel.setText("B6");
-    }
-
-    /** B7. */
-    private void onB7() {
-        resultLabel.setText("B7");
-    }
-
-    /** B8. */
-    private void onB8() {
-        resultLabel.setText("B8");
-    }
-
-    /** B9. */
-    private void onB9() {
-        resultLabel.setText("B9");
-    }
-
-    /** B10. */
-    private void onB10() {
-        resultLabel.setText("B10");
-    }
-
-    /** B11. */
-    private void onB11() {
-        resultLabel.setText("B11");
-    }
-
-    /** B12. */
-    private void onB12() {
-        resultLabel.setText("B12");
     }
 
     public static void main(String[] args) {

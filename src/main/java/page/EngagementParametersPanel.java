@@ -2,15 +2,20 @@ package page;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -28,6 +33,7 @@ import page.model.GuidanceMode;
 import page.model.OnOff;
 import page.model.Speed;
 import page.model.TargetType;
+import page.model.Engagement;
 import page.model.WeaponConfig;
 import page.model.WeaponConfigState;
 
@@ -62,8 +68,24 @@ public class EngagementParametersPanel extends JPanel {
     private final JComboBox wakeSensor;
     private final JComboBox guidanceMode;
     private final JComboBox type;
+    private final JTextField tb;
+    private final JTextField rb;
+    private final JTextField dp;
+    private final JTextField lat;
+    private final JTextField lng;
+    private final JButton cancelButton;
+    private boolean filling;
+    private JScrollPane formScroll;
 
     public EngagementParametersPanel() {
+        this(false);
+    }
+
+    /**
+     * displayOnly is the list of engagements.
+     * ENGM stays a drop-down of stored names. Every other field only displays.
+     */
+    protected EngagementParametersPanel(boolean displayOnly) {
         super(new BorderLayout());
         Mono.paint(this);
 
@@ -94,8 +116,22 @@ public class EngagementParametersPanel extends JPanel {
         });
         type = Mono.combo(TargetType.values());
         type.setSelectedIndex(-1);
+        tb = Mono.number(8);
+        rb = Mono.number(8);
+        dp = Mono.number(8);
+        lat = Mono.number(8);
+        lng = Mono.number(8);
+        cancelButton = Mono.button("Cancel");
 
-        add(scroller(form()), BorderLayout.CENTER);
+        formScroll = scroller(form());
+        add(formScroll, BorderLayout.CENTER);
+        if (displayOnly) {
+            lockForDisplay(formScroll);
+            JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+            Mono.paint(bar);
+            bar.add(cancelButton);
+            add(bar, BorderLayout.SOUTH);
+        }
     }
 
     private FormStack form() {
@@ -135,12 +171,12 @@ public class EngagementParametersPanel extends JPanel {
         form.add(pad(new FormRow("Wake Sensor", wakeSensor)));
         form.add(pad(new FormRow("Guidance Mode", guidanceMode)));
 
-        form.add(pad(pair(labeled("TRACK", Mono.number(8)), labeled("RB", Mono.number(8)))));
-        form.add(pad(pair(labeled("TB", Mono.number(8)), labeled("Dp", Mono.number(8)))));
+        form.add(pad(pair(labeled("TRACK", Mono.number(8)), labeled("RB", rb))));
+        form.add(pad(pair(labeled("TB", tb), labeled("Dp", dp))));
         form.add(pad(pair(labeled("TR", Mono.number(8)), labeled("TCo", Mono.number(8)))));
         form.add(pad(pair(labeled("TSp", Mono.number(8)), labeled("Type", type))));
-        form.add(pad(pair(labeled("ATB", Mono.number(8)), labeled("Lat", Mono.number(8)))));
-        form.add(pad(pair(labeled("Lng", Mono.number(8)), empty())));
+        form.add(pad(pair(labeled("ATB", Mono.number(8)), labeled("Lat", lat))));
+        form.add(pad(pair(labeled("Lng", lng), empty())));
         form.add(pad(pair(labeled("Lng", Mono.field(8)), empty())));
         return form;
     }
@@ -164,6 +200,83 @@ public class EngagementParametersPanel extends JPanel {
         choose(wakeSensor, config.getWakeGuidance());
         choose(guidanceMode, config.getGuidanceMode());
     }
+    /** Names already stored. ENGM lists them. The first name is selected. */
+    public void setNames(String[] names) {
+        filling = true;
+        engm.removeAllItems();
+        if (names != null) {
+            for (int i = 0; i < names.length; i++) {
+                engm.addItem(names[i]);
+            }
+        }
+        filling = false;
+        if (names != null && names.length > 0) {
+            engm.setSelectedIndex(0);
+        }
+    }
+
+    public String getSelectedName() {
+        Object item = engm.getSelectedItem();
+        return item == null ? "" : item.toString();
+    }
+
+    public void addNameListener(ActionListener listener) {
+        engm.addActionListener(listener);
+    }
+
+    public boolean isFilling() {
+        return filling;
+    }
+
+    public JButton getCancelButton() {
+        return cancelButton;
+    }
+
+    /** Fill this screen from a stored engagement. The layout stays Engagement Parameters. */
+    public void apply(Engagement engagement) {
+        filling = true;
+        engm.setSelectedItem(engagement.getField2());
+        engmType.setText(textOf(engagement.getGroup1()));
+        text(tube, numeric(engagement.getField3()));
+        configName.setText(textOf(engagement.getGroup5()));
+        text(tb, numeric(engagement.getP1()));
+        text(rb, numeric(engagement.getP2()));
+        text(dp, numeric(engagement.getP4()));
+        text(lat, numeric(engagement.getP9()));
+        text(lng, numeric(engagement.getP8()));
+        filling = false;
+        if (formScroll != null) {
+            formScroll.getVerticalScrollBar().setValue(0);
+        }
+    }
+
+    private void lockForDisplay(Container parent) {
+        java.awt.Component[] kids = parent.getComponents();
+        for (int i = 0; i < kids.length; i++) {
+            java.awt.Component kid = kids[i];
+            if (kid == engm) {
+                continue;
+            }
+            if (kid instanceof JTextField) {
+                ((JTextField) kid).setEditable(false);
+            } else if (kid instanceof JComboBox) {
+                kid.setEnabled(false);
+            } else if (kid instanceof JRadioButton) {
+                kid.setEnabled(false);
+            }
+            if (kid instanceof Container) {
+                lockForDisplay((Container) kid);
+            }
+        }
+    }
+
+    private static String numeric(String value) {
+        if (value == null || !value.matches("[0-9]*\\.?[0-9]*")) {
+            return "";
+        }
+        return value;
+    }
+
     public WeaponConfigState getWeapon() {
         return WeaponConfigState.fromLabel(weapon.getSelected());
     }

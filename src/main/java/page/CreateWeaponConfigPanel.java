@@ -42,7 +42,7 @@ import page.model.WeaponConfigState;
 
 /**
  * Create Weapon Configuration.
- * Shown by the first function key after F4 has swapped the footer.
+ * Shown by F1 on the Eng page.
  * OK reads the fields. The page then shows the saved stage 6 screen.
  */
 public class CreateWeaponConfigPanel extends JPanel {
