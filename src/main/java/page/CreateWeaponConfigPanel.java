@@ -92,7 +92,7 @@ public class CreateWeaponConfigPanel extends JPanel {
     }
 
     /**
-     * displayOnly locks every field except the config-name drop-down.
+     * displayOnly locks every field except the weapon radios and the config-name drop-down.
      * OK is hidden. The name drop-down still loads a stored configuration.
      */
     protected CreateWeaponConfigPanel(String heading, boolean nameIsList, boolean displayOnly) {
@@ -182,6 +182,34 @@ public class CreateWeaponConfigPanel extends JPanel {
         return form;
     }
 
+    /**
+     * Clear the loaded configuration and leave the weapon radios as they are.
+     * Used when the backend list for the chosen type is empty.
+     */
+    public void clearDetails() {
+        filling = true;
+        if (!nameIsList) {
+            configName.setText("");
+        }
+        clear(initialSpeed);
+        orderedSpeed.setText("");
+        orderedDepth.setText("");
+        searchSpeed.setText("");
+        enbDist.setText("500");
+        udl.setText("");
+        ldl.setText("");
+        clear(ash);
+        maxRd.setText("26.99");
+        clear(acousticHeadMode);
+        attackSonarRange.setText("2000.00");
+        clear(attackMode);
+        clear(wakeGuidance);
+        clear(guidanceMode);
+        clear(homingMode);
+        comments.setText("");
+        filling = false;
+    }
+
     /** Blank create form. Enb Dist, Max RD, and the attack sonar range keep their starting numbers. */
     public void reset() {
         weapon.setSelected("");
@@ -239,6 +267,16 @@ public class CreateWeaponConfigPanel extends JPanel {
             return WeaponConfigState.EHWT_EXE;
         }
         return null;
+    }
+
+    /** EHWT WAR, EHWT EXE, or null when neither radio is selected. */
+    public WeaponConfigState getWeaponState() {
+        return weaponState(weapon.getSelected());
+    }
+
+    /** Runs when the user clicks EHWT WAR or EHWT EXE. Not used by Create. */
+    public void addWeaponListener(ActionListener listener) {
+        weapon.addListener(listener);
     }
 
     public String getConfigName() {
@@ -352,7 +390,6 @@ public class CreateWeaponConfigPanel extends JPanel {
     }
 
     private void lockForDisplay() {
-        weapon.setLocked(true);
         lockField(orderedSpeed);
         lockField(orderedDepth);
         lockField(searchSpeed);

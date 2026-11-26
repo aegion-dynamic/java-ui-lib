@@ -5,14 +5,15 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.LookAndFeel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -22,17 +23,20 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 import page.form.FormRow;
 import page.form.Mono;
 import page.form.OptionGroup;
+import page.model.WeaponConfigState;
 
 /**
- * Delete Weapon Config. The third key after the footer swap shows it.
- * EHWT WAR / EHWT EXE pick the weapon. Config name is the configuration to delete.
+ * Delete Weapon Config.
+ * EHWT WAR / EHWT EXE ask the backend for that type's names.
+ * Config name is the drop-down of those names. OK deletes the chosen one.
  */
 public class DeleteWeaponConfigPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
     private final OptionGroup weapon;
-    private final JTextField configName;
+    private final JComboBox configName;
+    private boolean filling;
     private final JButton cancelButton;
     private final JButton okButton;
 
@@ -46,7 +50,7 @@ public class DeleteWeaponConfigPanel extends JPanel {
             /* Keep the look that is already installed. */
         }
         weapon = new OptionGroup(new String[] {"EHWT WAR", "EHWT EXE"}, -1, 2);
-        configName = Mono.field(18);
+        configName = Mono.combo(new String[0]);
         cancelButton = colored("Cancel", new Color(214, 64, 64));
         okButton = colored("OK", new Color(30, 150, 78));
         try {
@@ -101,28 +105,61 @@ public class DeleteWeaponConfigPanel extends JPanel {
         add(body, BorderLayout.CENTER);
     }
 
-    /** The selected weapon, or "" when neither radio is selected. */
-    public String getWeapon() {
-        return weapon.getSelected();
+    /** EHWT WAR, EHWT EXE, or null when neither radio is selected. */
+    public WeaponConfigState getWeaponState() {
+        String label = weapon.getSelected();
+        if ("EHWT WAR".equals(label)) {
+            return WeaponConfigState.EHWT_WAR;
+        }
+        if ("EHWT EXE".equals(label)) {
+            return WeaponConfigState.EHWT_EXE;
+        }
+        return null;
     }
 
-    public void setWeapon(String name) {
-        weapon.setSelected(name);
+    /** Runs when the user clicks EHWT WAR or EHWT EXE. */
+    public void addWeaponListener(ActionListener listener) {
+        weapon.addListener(listener);
     }
 
+    /** The name currently shown in the drop-down, or "" when the list is empty. */
     public String getConfigName() {
-        return configName.getText();
+        Object item = configName.getSelectedItem();
+        if (item == null) {
+            return "";
+        }
+        return item.toString();
     }
 
-    /** Put a name into Config name. Pass "" to clear it. */
-    public void setConfigName(String name) {
-        configName.setText(name == null ? "" : name);
+    /** Replace the names in the drop-down. The first name is selected. */
+    public void setNames(String[] names) {
+        filling = true;
+        configName.removeAllItems();
+        if (names != null) {
+            for (int i = 0; i < names.length; i++) {
+                configName.addItem(names[i]);
+            }
+        }
+        filling = false;
+        if (names != null && names.length > 0) {
+            configName.setSelectedIndex(0);
+        }
     }
 
-    /** Clear the radios and the name. */
+    public void addNameListener(ActionListener listener) {
+        configName.addActionListener(listener);
+    }
+
+    public boolean isFilling() {
+        return filling;
+    }
+
+    /** Clear the radios and the name list. */
     public void reset() {
+        filling = true;
         weapon.setSelected("");
-        configName.setText("");
+        configName.removeAllItems();
+        filling = false;
     }
 
     public JButton getOkButton() {

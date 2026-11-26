@@ -1,6 +1,7 @@
 package page.form;
 
 import java.awt.GridLayout;
+import java.awt.event.ActionListener;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JRadioButton;
@@ -56,6 +57,13 @@ public class OptionGroup extends Block {
     public void setLocked(boolean locked) {
         for (int i = 0; i < buttons.length; i++) {
             buttons[i].setEnabled(!locked);
+        }
+    }
+
+    /** Runs when the user clicks a choice. The event text is not the label. Read getSelected. */
+    public void addListener(ActionListener listener) {
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].addActionListener(listener);
         }
     }
 

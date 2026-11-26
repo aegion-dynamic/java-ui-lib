@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -19,6 +21,7 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
 import page.backend.EngagementService;
+import page.backend.WeaponConfigLists;
 import page.backend.WeaponConfigService;
 import page.model.Engagement;
 import page.model.WeaponConfig;
@@ -74,6 +77,10 @@ public class FunctionPage extends JFrame {
     private ListEngagementPanel listEngagementForm;
     private EngagementService backend;
     private WeaponConfigService weaponBackend;
+    /** The filtered linked list for the form that is open. */
+    private List modifyChoices = new LinkedList();
+    private List listChoices = new LinkedList();
+    private List deleteChoices = new LinkedList();
     private FunctionKeyBar footer;
     private boolean wcPage;
     private boolean wcTubeSet;
@@ -185,12 +192,17 @@ public class FunctionPage extends JFrame {
                 showParameters();
             }
         });
+        modifyWeaponForm.addWeaponListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                loadModifyChoices();
+            }
+        });
         modifyWeaponForm.addNameListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 if (modifyWeaponForm.isFilling()) {
                     return;
                 }
-                WeaponConfig selected = weaponBackend.findByName(modifyWeaponForm.getSelectedName());
+                WeaponConfig selected = WeaponConfigLists.named(modifyChoices, modifyWeaponForm.getSelectedName());
                 if (selected != null) {
                     modifyWeaponForm.apply(selected);
                 }
@@ -217,10 +229,15 @@ public class FunctionPage extends JFrame {
                 showParameters();
             }
         });
+        deleteWeaponForm.addWeaponListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                loadDeleteChoices();
+            }
+        });
         deleteWeaponForm.getOkButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 String name = deleteWeaponForm.getConfigName();
-                weaponBackend.deleteByName(name);
+                weaponBackend.deleteMatch(deleteWeaponForm.getWeaponState(), name);
                 resultLabel.setText("Delete " + name);
                 showParameters();
             }
@@ -231,12 +248,17 @@ public class FunctionPage extends JFrame {
                 showParameters();
             }
         });
+        listWeaponForm.addWeaponListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                loadListChoices();
+            }
+        });
         listWeaponForm.addNameListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 if (listWeaponForm.isFilling()) {
                     return;
                 }
-                WeaponConfig selected = weaponBackend.findByName(listWeaponForm.getSelectedName());
+                WeaponConfig selected = WeaponConfigLists.named(listChoices, listWeaponForm.getSelectedName());
                 if (selected != null) {
                     listWeaponForm.apply(selected);
                 }
@@ -316,24 +338,18 @@ public class FunctionPage extends JFrame {
         resultLabel.setText("Create weapon configuration");
     }
 
-    /** F2. Modify Weapon Configuration for the chosen config name. */
+    /** F2. Modify. The config list stays empty until a weapon type is chosen. */
     private void onF2() {
-        String[] names = weaponBackend.names();
-        if (names.length == 0) {
-            resultLabel.setText("Create a weapon configuration first");
-            return;
-        }
-        modifyWeaponForm.setNames(names);
-        WeaponConfig selected = weaponBackend.findByName(modifyWeaponForm.getSelectedName());
-        if (selected != null) {
-            modifyWeaponForm.apply(selected);
-        }
+        modifyChoices = new LinkedList();
+        modifyWeaponForm.reset();
+        modifyWeaponForm.setNames(new String[0]);
         formCards.show(formSlot, "modifyWeapon");
         resultLabel.setText("Modify weapon configuration");
     }
 
-    /** F3. Delete Weapon Config. */
+    /** F3. Delete. The config list stays empty until a weapon type is chosen. */
     private void onF3() {
+        deleteChoices = new LinkedList();
         deleteWeaponForm.reset();
         formCards.show(formSlot, "deleteWeapon");
         resultLabel.setText("Delete weapon config");
@@ -433,20 +449,51 @@ public class FunctionPage extends JFrame {
         formCards.show(formSlot, "parameters");
     }
 
-    /** F4. List of weapon configurations. The name drop-down loads one configuration for display. */
+    /** F4. List. The config list stays empty until a weapon type is chosen. */
     private void onF4() {
-        String[] names = weaponBackend.names();
-        if (names.length == 0) {
-            resultLabel.setText("Create a weapon configuration first");
-            return;
-        }
-        listWeaponForm.setNames(names);
-        WeaponConfig selected = weaponBackend.findByName(listWeaponForm.getSelectedName());
-        if (selected != null) {
-            listWeaponForm.apply(selected);
-        }
+        listChoices = new LinkedList();
+        listWeaponForm.reset();
+        listWeaponForm.setNames(new String[0]);
         formCards.show(formSlot, "listWeapon");
         resultLabel.setText("List weapon configuration");
+    }
+
+    /** EHWT WAR or EHWT EXE on Modify. Asks the backend before OK. */
+    private void loadModifyChoices() {
+        if (modifyWeaponForm.isFilling()) {
+            return;
+        }
+        modifyChoices = WeaponConfigLists.filter(weaponBackend.all(), modifyWeaponForm.getWeaponState());
+        showChoiceNames(modifyWeaponForm, modifyChoices);
+    }
+
+    /** EHWT WAR or EHWT EXE on List. Asks the backend before any other click. */
+    private void loadListChoices() {
+        if (listWeaponForm.isFilling()) {
+            return;
+        }
+        listChoices = WeaponConfigLists.filter(weaponBackend.all(), listWeaponForm.getWeaponState());
+        showChoiceNames(listWeaponForm, listChoices);
+    }
+
+    /** EHWT WAR or EHWT EXE on Delete. Asks the backend before OK. */
+    private void loadDeleteChoices() {
+        if (deleteWeaponForm.isFilling()) {
+            return;
+        }
+        deleteChoices = WeaponConfigLists.filter(weaponBackend.all(), deleteWeaponForm.getWeaponState());
+        deleteWeaponForm.setNames(WeaponConfigLists.names(deleteChoices));
+    }
+
+    /** Names from the filtered list go in the drop-down. The first configuration fills the fields. */
+    private void showChoiceNames(CreateWeaponConfigPanel form, List found) {
+        form.setNames(WeaponConfigLists.names(found));
+        WeaponConfig first = WeaponConfigLists.first(found);
+        if (first == null) {
+            form.clearDetails();
+            return;
+        }
+        form.apply(first);
     }
 
     /** F5. List of engagements. Same form as Engagement Parameters, for display. */

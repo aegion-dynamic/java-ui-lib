@@ -2,7 +2,8 @@ package page;
 
 /**
  * List of weapon configurations. Same fields as Modify Weapon Configuration.
- * The fields only display. Config name chooses which one to show.
+ * EHWT WAR / EHWT EXE stay clickable. That choice asks for the matching names.
+ * Config name chooses which one to show. The other fields only display.
  */
 public class ListWeaponConfigPanel extends CreateWeaponConfigPanel {
 

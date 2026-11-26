@@ -14,9 +14,10 @@ This project is a practice screen you can copy into a larger Java 1.6 program.
 | `src/main/java/page/ModifyEngagementPanel.java` | Modify Engagement. F2 opens it. The name drop-down chooses which stored engagement to load. |
 | `src/main/java/page/DeleteEngagementPanel.java` | Delete Engagement. F3 opens it. Eng No is the number list. |
 | `src/main/java/page/CreateWeaponConfigPanel.java` | Create Weapon Configuration. The first key after F4 opens it. |
-| `src/main/java/page/ModifyWeaponConfigPanel.java` | Modify Weapon Configuration. The second key after F4 opens it. Config name chooses which one to load. |
-| `src/main/java/page/DeleteWeaponConfigPanel.java` | Delete Weapon Config. The third key after F4 opens it. EHWT WAR / EHWT EXE and Config name. |
-| `src/main/java/page/ListWeaponConfigPanel.java` | List of weapon configurations. F8 opens it. Choosing a config name displays that configuration. The fields cannot be edited. |
+| `src/main/java/page/backend/WeaponConfigLists.java` | Filters a LinkedList of weapon configurations, reads the names for the drop-down, and finds the one to load into the form. |
+| `src/main/java/page/ModifyWeaponConfigPanel.java` | Modify Weapon Configuration. F2 opens it. EHWT WAR / EHWT EXE fills the config-name list. A name loads that configuration. |
+| `src/main/java/page/DeleteWeaponConfigPanel.java` | Delete Weapon Config. F3 opens it. EHWT WAR / EHWT EXE fills the config-name list. |
+| `src/main/java/page/ListWeaponConfigPanel.java` | List of weapon configurations. F4 opens it. EHWT WAR / EHWT EXE fills the config-name list. A name displays that configuration. |
 | `src/main/java/page/ListEngagementPanel.java` | List of engagements. F7 opens it. Same fields as Create Engagement. Choosing a name displays that engagement. The fields cannot be edited. |
 | `src/main/java/page/form/` | The reusable rows, sections, and option groups. |
 | `pom.xml` | Tells Maven to compile this as Java 1.6 and which class to start. |
@@ -578,9 +579,9 @@ Click **F3**. Delete Engagement opens. Eng No is a drop-down of 1, 2, and 3. Eng
 
 Press **F4**, then the first key. The blue square still says F1 and the word beside it is WConfig. Create Weapon Configuration opens. Type a config name and press OK. Engagement Parameters comes back, with that weapon choice and config name on it. Cancel returns there without saving.
 
-Press **F4**, then the second key. The word beside F2 is Modify. Modify Weapon Configuration opens. Config name is a drop-down of the names just saved. Choose one and that configuration fills the form. OK stores the edit and returns to Engagement Parameters. Cancel returns there too. How to put these screens on the other system is in `Weapon configuration - how to add it.md`.
+Press **F2**. Modify Weapon Configuration opens. Click EHWT WAR or EHWT EXE. Config name becomes a drop-down of the saved names for that type only. Choose a name and that configuration fills the form. OK stores the edit and returns to Engagement Parameters. The steps are in `Weapon type loads the config list.md`.
 
-Press **F4**, then the third key. The word beside F3 is Delete. Delete Weapon Config opens. The header is DELETE WEAPON CONFIG. EHWT WAR and EHWT EXE are radios, and Config name is a text field. OK and Cancel both return to Engagement Parameters.
+Press **F3**. Delete Weapon Config opens. Click EHWT WAR or EHWT EXE. Config name lists that type only. OK deletes the chosen name and returns to Engagement Parameters.
 
 ---
 

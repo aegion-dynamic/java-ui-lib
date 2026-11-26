@@ -7,15 +7,11 @@ Every OK and every Cancel returns to Engagement Parameters. That screen is also 
 | Key | Form | OK | Cancel |
 |---|---|---|---|
 | at open | `EngagementParametersPanel` | | |
-| F1 | `CreateEngagementPanel`, empty | `readForm()`, `EngagementService.create`, show parameters | show parameters, do not read |
-| F2 | `ModifyEngagementPanel`. Name drop-down loads one stored engagement | `readForm()`, `EngagementService.update`, show parameters | show parameters |
-| F3 | `DeleteEngagementPanel` | read Eng No, show parameters | show parameters |
-| F4 | swaps the footer words. The blue squares stay F1–F12 | | |
-| F4 then F1, command `"B1"` | `CreateWeaponConfigPanel` | `readForm()`, `WeaponConfigService.create`, `applyWeapon`, show parameters | show parameters |
-| F4 then F2, command `"B2"` | `ModifyWeaponConfigPanel`. Config name drop-down loads one stored configuration | `readForm()`, `WeaponConfigService.update`, `applyWeapon`, show parameters | show parameters |
-| F4 then F3, command `"B3"` | `DeleteWeaponConfigPanel` | read the weapon and config name, show parameters | show parameters |
-| F7 | `ListEngagementPanel`. Engagement Name loads one stored engagement and only displays it | no OK | show parameters |
-| F8 | `ListWeaponConfigPanel`. Config name loads one stored configuration and only displays it | no OK | show parameters |
+| F1 | `CreateWeaponConfigPanel`. You type the name | `readForm()`, `WeaponConfigService.create`, `applyWeapon`, show parameters | show parameters, do not read |
+| F2 | `ModifyWeaponConfigPanel`. EHWT WAR / EHWT EXE loads that type's names. A name fills the form | `readForm()`, `WeaponConfigService.update`, `applyWeapon`, show parameters | show parameters |
+| F3 | `DeleteWeaponConfigPanel`. EHWT WAR / EHWT EXE loads that type's names | delete that weapon and name, show parameters | show parameters |
+| F4 | `ListWeaponConfigPanel`. EHWT WAR / EHWT EXE loads that type's names. A name displays that configuration | no OK | show parameters |
+| F5 | `ListEngagementPanel`. Engagement Name loads one stored engagement and only displays it | no OK | show parameters |
 
 ---
 
@@ -237,11 +233,9 @@ Drop-down lists: Initial Speed is 24, 30, 35, 40, 45, 50 knots. ASH and Wake Gui
 
 `src/main/java/page/ModifyWeaponConfigPanel.java`
 
-F2 after the footer swap. The command is `"B2"`. A separate panel. The header is `MODIFY WEAPON CONFIGURATION`. Config name is a drop-down of names already stored. Choosing one calls `apply` for that `WeaponConfig`.
+F2. Header `MODIFY WEAPON CONFIGURATION`. The config-name drop-down starts empty. Clicking EHWT WAR or EHWT EXE asks the backend for that type only, and those names fill the drop-down. Choosing a name calls `apply` for that `WeaponConfig`. The full steps are in `Weapon type loads the config list.md`.
 
-The listener is the same shape as Modify Engagement, with `WeaponConfigService.findByName` and `modifyWeaponForm.apply`. OK calls `update`, then `parameters.applyWeapon`, then shows Engagement Parameters.
-
-The name in the list is `getConfigName()`, the Config name typed on Create. If none has been stored, this key does not open the form.
+OK calls `update`, then `parameters.applyWeapon`, then shows Engagement Parameters. Cancel shows Engagement Parameters and does not save.
 
 ---
 
@@ -249,11 +243,11 @@ The name in the list is `getConfigName()`, the Config name typed on Create. If n
 
 `src/main/java/page/DeleteWeaponConfigPanel.java`
 
-F3 after the footer swap. The command is `"B3"`. The word beside the blue square is Delete. Header `DELETE WEAPON CONFIG`. Two controls: EHWT WAR / EHWT EXE, with neither selected at first, and Config name, a text field.
+F3. Header `DELETE WEAPON CONFIG`. EHWT WAR / EHWT EXE, with neither selected at first, and Config name as a drop-down. The drop-down stays empty until a weapon type is clicked. That click asks the backend for that type's names.
 
-`getWeapon()` is the selected radio, or `""` when neither is selected. `setWeapon(String)` selects the radio whose text matches, or clears both. `getConfigName()` and `setConfigName(String)` are the name field. `reset()` clears both.
+`getWeaponState()` is `EHWT_WAR`, `EHWT_EXE`, or null. `getConfigName()` is the name in the drop-down. `reset()` clears both.
 
-OK reads Config name with `getConfigName()` and calls `weaponBackend.deleteByName`. That removes the stored configuration with the same name, then shows Engagement Parameters. A name that is not stored leaves the list unchanged. Cancel shows Engagement Parameters and does not read the form.
+OK calls `weaponBackend.deleteMatch` with that weapon type and that name, then shows Engagement Parameters. Cancel shows Engagement Parameters and does not delete.
 
 ---
 
@@ -261,9 +255,9 @@ OK reads Config name with `getConfigName()` and calls `weaponBackend.deleteByNam
 
 `src/main/java/page/ListWeaponConfigPanel.java`
 
-F8. The word beside the blue square is List. Header `LIST OF WEAPON CONFIGURATIONS`. It is the Modify Weapon Configuration form with every field locked. Config name stays a drop-down.
+F4. Header `LIST OF WEAPON CONFIGURATIONS`. Same fields as Modify. The weapon radios and the config-name drop-down stay usable. The other fields only display.
 
-Choosing a name calls `apply` for that `WeaponConfig`. The fields show the stored values and do not accept edits. There is no OK. Cancel shows Engagement Parameters. If no configuration has been stored, F8 does not open the form.
+Clicking EHWT WAR or EHWT EXE asks the backend for that type. Choosing a name calls `apply`. There is no OK. Cancel shows Engagement Parameters.
 
 ---
 
