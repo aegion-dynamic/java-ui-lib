@@ -43,12 +43,13 @@ public class WeaponConfig {
         return copy;
     }
 
-    public void setConfigName(String configName) {
+    public void setConfigName(char[] configName) {
         if (configName == null) {
             this.configName = new char[0];
-        } else {
-            this.configName = configName.toCharArray();
+            return;
         }
+        this.configName = new char[configName.length];
+        System.arraycopy(configName, 0, this.configName, 0, configName.length);
     }
 
     /** The config name as text, for a drop-down or a label. */

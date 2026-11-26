@@ -278,7 +278,14 @@ public class EngagementParametersPanel extends JPanel {
     }
 
     public WeaponConfigState getWeapon() {
-        return WeaponConfigState.fromLabel(weapon.getSelected());
+        String label = weapon.getSelected();
+        if ("EHWT WAR".equals(label)) {
+            return WeaponConfigState.EHWT_WAR;
+        }
+        if ("EHWT EXE".equals(label)) {
+            return WeaponConfigState.EHWT_EXE;
+        }
+        return null;
     }
     public Double getInitialSpeed() {
         Speed speed = Speed.parse(initialSpeed.getText());
@@ -365,12 +372,72 @@ public class EngagementParametersPanel extends JPanel {
         return value == null ? "" : value.toString();
     }
 
+    /**
+     * Select the row for this value.
+     * Their boxes hold the words ("Passive", "Sub Surface", "ON", "Bg Rider Out").
+     * The getter returns the enum ("PASSIVE", "SUB_SURFACE"). setSelectedItem only
+     * matches when the box already contains that same object, so the row is found
+     * by comparing the visible text.
+     */
     private static void choose(JComboBox box, Object value) {
         if (value == null || "".equals(value)) {
             box.setSelectedIndex(-1);
             return;
         }
-        box.setSelectedItem(value);
+        for (int i = 0; i < box.getItemCount(); i++) {
+            Object item = box.getItemAt(i);
+            if (item != null && sameChoice(value, item)) {
+                box.setSelectedIndex(i);
+                return;
+            }
+        }
+        box.setSelectedIndex(-1);
+    }
+
+    private static boolean sameChoice(Object value, Object item) {
+        if (value.equals(item)) {
+            return true;
+        }
+        String left = words(value.toString());
+        String right = words(item.toString());
+        return left.equalsIgnoreCase(right);
+    }
+
+    /** PASSIVE and BG_RIDER_OUT become the words the box shows. */
+    private static String words(String text) {
+        if (text.indexOf('_') < 0 && !constantName(text)) {
+            return text;
+        }
+        String[] parts = text.split("_");
+        StringBuffer joined = new StringBuffer();
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                joined.append(' ');
+            }
+            joined.append(word(parts[i]));
+        }
+        return joined.toString();
+    }
+
+    private static String word(String token) {
+        if (token.length() == 0) {
+            return token;
+        }
+        String lower = token.toLowerCase();
+        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+    }
+
+    private static boolean constantName(String text) {
+        if (text.length() == 0) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c >= 'a' && c <= 'z') {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static Object chosen(JComboBox box) {

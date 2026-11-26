@@ -209,8 +209,8 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     public WeaponConfig readForm() {
         WeaponConfig config = new WeaponConfig();
-        config.setWeapon(WeaponConfigState.fromLabel(weapon.getSelected()));
-        config.setConfigName(getConfigName());
+        config.setWeapon(weaponState(weapon.getSelected()));
+        config.setConfigName(getConfigName().toCharArray());
         config.setInitialSpeed(knotsOf(chosen(initialSpeed)));
         config.setOrderedSpeed(knots(orderedSpeed.getText()));
         config.setOrderedDepth(metresDeep(orderedDepth.getText()));
@@ -228,6 +228,17 @@ public class CreateWeaponConfigPanel extends JPanel {
         config.setHomingMode((InternalGuidanceMode) chosen(homingMode));
         config.setComments(comments.getText());
         return config;
+    }
+
+    /** Their WeaponConfigState has no fromLabel. Match the radio text to the constant. */
+    private static WeaponConfigState weaponState(String label) {
+        if ("EHWT WAR".equals(label)) {
+            return WeaponConfigState.EHWT_WAR;
+        }
+        if ("EHWT EXE".equals(label)) {
+            return WeaponConfigState.EHWT_EXE;
+        }
+        return null;
     }
 
     public String getConfigName() {
@@ -384,7 +395,48 @@ public class CreateWeaponConfigPanel extends JPanel {
             box.setSelectedIndex(-1);
             return;
         }
-        box.setSelectedItem(value);
+        for (int i = 0; i < box.getItemCount(); i++) {
+            Object item = box.getItemAt(i);
+            if (item != null && (value.equals(item)
+                    || words(value.toString()).equalsIgnoreCase(words(item.toString())))) {
+                box.setSelectedIndex(i);
+                return;
+            }
+        }
+        box.setSelectedIndex(-1);
+    }
+
+    private static String words(String text) {
+        if (text.indexOf('_') < 0 && !constantName(text)) {
+            return text;
+        }
+        String[] parts = text.split("_");
+        StringBuffer joined = new StringBuffer();
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                joined.append(' ');
+            }
+            if (parts[i].length() == 0) {
+                continue;
+            }
+            String lower = parts[i].toLowerCase();
+            joined.append(Character.toUpperCase(lower.charAt(0)));
+            joined.append(lower.substring(1));
+        }
+        return joined.toString();
+    }
+
+    private static boolean constantName(String text) {
+        if (text.length() == 0) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c >= 'a' && c <= 'z') {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static Object chosen(JComboBox box) {

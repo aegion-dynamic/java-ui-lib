@@ -100,9 +100,12 @@ These are the calls this sample makes. Their class might spell them differently.
 | `InternalGuidanceMode.values()` | Homing Mode | Pro Navigation, Intercept |
 | `TargetType.values()` | Attack Mode | Same |
 | `configNameText()` | the name drop-down | The struct field is a `char[]`. This method is `new String` of that array |
-| `WeaponConfigState.fromLabel(...)` | the EHWT radios | Their enum may not have `fromLabel`. Pick the constant that matches the radio text, `EHWT_WAR` or `EHWT_EXE`. |
+| radio text `"EHWT WAR"` / `"EHWT EXE"` | `setWeapon` | Their enum has no `fromLabel`. Compare the radio text and pass `EHWT_WAR` or `EHWT_EXE`. |
+| `getConfigName().toCharArray()` | `setConfigName` | Their setter takes `char[]`. The form still reads a `String`. |
 
 The drop-downs show `toString()` of the value. Our enums return `EHWT WAR`, `ON`, `Sub Surface`, and so on. If their `toString()` returns `EHWT_WAR` instead, the box shows the constant name. The value is still correct. Change the drawing of the box only if the words on screen must stay the spaced labels.
+
+`applyWeapon` must not call `setSelectedItem` with the enum. Their acoustic, attack, wake, and guidance boxes already hold the words (`Passive`, `Sub Surface`, `ON`, `Bg Rider Out`). `setSelectedItem` selects a row only when that same object is in the list. An enum is not equal to the string `"Passive"`, so the box stays blank. Walk the items and select the one whose text matches, turning `PASSIVE` into `Passive` and `BG_RIDER_OUT` into `Bg Rider Out`. `EngagementParametersPanel.choose` does that.
 
 ---
 
@@ -204,7 +207,13 @@ The number boxes already refuse letters. `parseDouble` can still fail on a half-
 
 ```java
 TheirWeaponConfig config = new TheirWeaponConfig();
-config.setWeapon(WeaponConfigState.fromLabel(weapon.getSelected()));
+String radio = weapon.getSelected();
+if ("EHWT WAR".equals(radio)) {
+    config.setWeapon(WeaponConfigState.EHWT_WAR);
+} else if ("EHWT EXE".equals(radio)) {
+    config.setWeapon(WeaponConfigState.EHWT_EXE);
+}
+config.setConfigName(getConfigName().toCharArray());
 if (chosen(initialSpeed) instanceof Speed) {
     config.setInitialSpeed((Speed) chosen(initialSpeed));
 }

@@ -4,7 +4,7 @@ The Depth Window on the WC page draws one curve. The axes show when the page ope
 
 For now the sample loads a dummy line in `loadDummyDepth` so there is a curve under the pointer. Delete that method when the real samples are wired. The cross still follows the mouse after the dummy line is gone.
 
-The graph is `DepthGraph`. The WC page holds one of them and forwards three calls: `setDepthBulk`, `addDepthPoint`, and `clearDepth`. Call those on the WC page. Do not hand the panel to the code that owns the numbers.
+The graph is `DepthGraph`. The wire-guidance view, `WcPage`, holds one of them and forwards three calls: `setDepthBulk`, `addDepthPoint`, and `clearDepth`. Call those on the view. Do not hand the panel to the code that owns the numbers. `setDepthWindow` replaces that whole panel. After that replacement, those three calls still talk to the graph the view built first.
 
 X and Y on the graph are plain `double` values. This sample does not turn them into `Depth` or `Distance`. The caller decides what one unit means.
 

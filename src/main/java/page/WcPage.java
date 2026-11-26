@@ -29,12 +29,14 @@ import javax.swing.SwingConstants;
 import page.form.Mono;
 
 /**
- * The WC page body. The top bar, the footer, and the COG/SOG panel stay
- * outside this page so Eng and WC share them.
- * The left side is the note and the Depth Window.
- * The right side is five drop-downs. Gauges starts open.
+ * Wire guidance view. One panel, so the window can show this view or replace it.
+ * The note, the Depth Window, and each drop-down body can be replaced on their own.
+ * COG/SOG is not built here. The window places that shared strip in {@link #placeReadout}
+ * while this view is showing.
  */
-public class WcPage {
+public class WcPage extends JPanel {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Color DARK = new Color(28, 28, 30);
     private static final Color GREEN = new Color(28, 148, 52);
@@ -50,37 +52,159 @@ public class WcPage {
     private static final int ROW = 26;
     private static final int PARAM_ROW = 22;
 
-    private final JPanel body;
-    private final JPanel side;
+    private JComponent leftPanel;
+    private JComponent notePanel;
+    private JComponent depthPanel;
+    private JComponent sections;
+    private JComponent gaugesBody;
+    private JComponent torpedoParametersBody;
+    private JComponent demonBody;
+    private JComponent distanceBody;
+    private final JPanel readoutSlot = new JPanel(new BorderLayout());
+    private final JPanel rightColumn = new JPanel(new BorderLayout(0, 4));
     private DepthGraph depthGraph;
     private JLabel trajectoryTitle;
-    private JPanel trajectoryBlock;
+    private JComponent trajectoryBlock;
     private CardLayout trajectoryCards;
     private JPanel trajectoryDeck;
     private JComboBox trajectoryTubes;
     private boolean choosingTube;
 
     public WcPage() {
-        body = body();
-        side = side();
+        super(new BorderLayout(4, 0));
+        setBackground(DARK);
+        setOpaque(true);
+        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        readoutSlot.setOpaque(false);
+        rightColumn.setOpaque(false);
+        rightColumn.setPreferredSize(new Dimension(300, 100));
+        rightColumn.add(readoutSlot, BorderLayout.NORTH);
+        sections = side();
+        rightColumn.add(sections, BorderLayout.CENTER);
+        leftPanel = body();
+        add(leftPanel, BorderLayout.CENTER);
+        add(rightColumn, BorderLayout.EAST);
     }
 
-    /** The dark area and the Depth Window. */
-    public JPanel getBody() {
-        return body;
+    /** The note and the Depth Window. */
+    public JComponent getBody() {
+        return leftPanel;
     }
 
-    /** The five drop-downs. COG and SOG are not in here. */
-    public JPanel getSide() {
-        return side;
+    /** The five drop-downs. COG and SOG are the strip above this, when the view is showing. */
+    public JComponent getSide() {
+        return sections;
+    }
+
+    /** Put the shared COG/SOG strip at the top of this view's right column. */
+    public void placeReadout(MotionReadout readout) {
+        readoutSlot.removeAll();
+        if (readout != null) {
+            readoutSlot.add(readout, BorderLayout.CENTER);
+        }
+        readoutSlot.revalidate();
+        readoutSlot.repaint();
+    }
+
+    /** Take the shared COG/SOG strip back. The slot is left empty. */
+    public MotionReadout takeReadout() {
+        if (readoutSlot.getComponentCount() == 0) {
+            return null;
+        }
+        MotionReadout readout = (MotionReadout) readoutSlot.getComponent(0);
+        readoutSlot.remove(readout);
+        readoutSlot.revalidate();
+        return readout;
+    }
+
+    /** Replace the left half. The right column stays. */
+    public void setLeft(JComponent next) {
+        remove(leftPanel);
+        leftPanel = next;
+        add(leftPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+    }
+
+    /** Replace the five drop-downs. The COG/SOG slot stays. */
+    public void setSide(JComponent next) {
+        rightColumn.remove(sections);
+        sections = next;
+        rightColumn.add(sections, BorderLayout.CENTER);
+        rightColumn.revalidate();
+        rightColumn.repaint();
+    }
+
+    /** Replace the purple note. */
+    public void setNote(JComponent next) {
+        ((Container) leftPanel).remove(notePanel);
+        notePanel = next;
+        leftPanel.add(notePanel, BorderLayout.CENTER);
+        leftPanel.revalidate();
+        leftPanel.repaint();
+    }
+
+    /** Replace the Depth Window. Later depth samples go to the graph this view built. */
+    public void setDepthWindow(JComponent next) {
+        ((Container) leftPanel).remove(depthPanel);
+        depthPanel = next;
+        leftPanel.add(depthPanel, BorderLayout.SOUTH);
+        leftPanel.revalidate();
+        leftPanel.repaint();
+    }
+
+    /** Replace the open body under Gauges. The cyan bar stays. */
+    public void setGauges(JComponent next) {
+        gaugesBody = swap(gaugesBody, next);
+    }
+
+    /** Replace the body under Torpedo Trajectory. The cyan bar stays. */
+    public void setTrajectory(JComponent next) {
+        trajectoryBlock = swap(trajectoryBlock, next);
+    }
+
+    /** Replace the body under Torpedo Parameters. The cyan bar stays. */
+    public void setTorpedoParameters(JComponent next) {
+        torpedoParametersBody = swap(torpedoParametersBody, next);
+    }
+
+    /** Replace the body under Demon Spectrum. The cyan bar stays. */
+    public void setDemonSpectrum(JComponent next) {
+        demonBody = swap(demonBody, next);
+    }
+
+    /** Replace the body under LL Torpedo Distance. The cyan bar stays. */
+    public void setLlTorpedoDistance(JComponent next) {
+        distanceBody = swap(distanceBody, next);
+    }
+
+    private JComponent swap(JComponent current, JComponent next) {
+        Container parent = current.getParent();
+        int index = 0;
+        for (int i = 0; i < parent.getComponentCount(); i++) {
+            if (parent.getComponent(i) == current) {
+                index = i;
+                break;
+            }
+        }
+        boolean open = current.isVisible();
+        parent.remove(index);
+        next.setVisible(open);
+        next.setAlignmentX(0f);
+        parent.add(next, index);
+        parent.revalidate();
+        parent.repaint();
+        return next;
     }
 
     private JPanel body() {
         JPanel left = new JPanel(new BorderLayout());
         left.setBackground(DARK);
         left.setOpaque(true);
-        left.add(note(), BorderLayout.CENTER);
-        left.add(depthWindow(), BorderLayout.SOUTH);
+        notePanel = note();
+        depthPanel = depthWindow();
+        left.add(notePanel, BorderLayout.CENTER);
+        left.add(depthPanel, BorderLayout.SOUTH);
         return left;
     }
 
@@ -160,21 +284,25 @@ public class WcPage {
         column.setOpaque(true);
         column.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 2));
 
-        column.add(section("Gauges", gaugesBody(), true));
+        gaugesBody = gaugesBody();
+        column.add(section("Gauges", gaugesBody, true));
         column.add(gap());
         column.add(trajectorySection());
         column.add(gap());
-        column.add(section("Torpedo Parameters", torpedoParameters(), false));
+        torpedoParametersBody = torpedoParameters();
+        column.add(section("Torpedo Parameters", torpedoParametersBody, false));
         column.add(gap());
-        column.add(section("Demon Spectrum", blankBody(), false));
+        demonBody = blankBody();
+        column.add(section("Demon Spectrum", demonBody, false));
         column.add(gap());
-        column.add(section("LL Torpedo Distance", blankBody(), false));
+        distanceBody = blankBody();
+        column.add(section("LL Torpedo Distance", distanceBody, false));
         column.add(Box.createVerticalGlue());
         return column;
     }
 
     /** A cyan bar that opens and closes the rows under it. */
-    private JPanel section(String title, final JPanel block, boolean open) {
+    private JPanel section(String title, final JComponent block, boolean open) {
         block.setVisible(open);
         JPanel header = band(CYAN, INK, title);
         header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

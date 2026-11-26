@@ -4,13 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,8 +32,9 @@ import page.model.WeaponConfig;
  * F5 opens List of Engagements. That list is the Engagement Parameters form,
  * read-only, and ENGM chooses which stored engagement to show.
  * The drop-down in the top bar chooses Eng or WC.
- * The top bar, the footer, and the COG/SOG panel stay on both pages.
- * WC replaces the left side and the area under COG/SOG.
+ * WC is one view, {@link WcPage}. The window shows that view, or replaces it
+ * with {@link #setWireGuidance}. The top bar and the footer stay on the window.
+ * COG/SOG is one strip. It sits on Eng, and moves onto the WC view while WC is showing.
  * F7 on WC swaps that page's footer. Eng has one footer and does not swap.
  */
 public class FunctionPage extends JFrame {
@@ -79,13 +78,11 @@ public class FunctionPage extends JFrame {
     private boolean wcPage;
     private boolean wcTubeSet;
     private WcPage wcPagePanel;
-    private final CardLayout leftCards = new CardLayout();
-    private final JPanel leftSlot = new JPanel(leftCards);
-    private final CardLayout rightCards = new CardLayout();
-    private final JPanel rightBody = new JPanel(rightCards);
+    private final CardLayout stageCards = new CardLayout();
+    private final JPanel stageDeck = new JPanel(stageCards);
     private final JPanel rightColumn = new JPanel(new BorderLayout(0, 4));
     private final MotionReadout readout = new MotionReadout();
-    private final JComboBox pageChoice = new JComboBox(new String[] {"Eng", "WC"});
+    private CommonHeader header;
 
     /**
      * One listener for every function button.
@@ -137,15 +134,11 @@ public class FunctionPage extends JFrame {
         JPanel page = new JPanel(new BorderLayout(0, 4));
         page.setBackground(DARK);
 
-        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 4));
-        topBar.setBackground(BLUE);
-        topBar.setPreferredSize(new Dimension(100, 40));
-        JLabel pageLabel = new JLabel("Page");
-        pageLabel.setForeground(Color.WHITE);
-        pageLabel.setFont(new Font("Dialog", Font.BOLD, 14));
-        pageChoice.setFont(new Font("Dialog", Font.PLAIN, 14));
-        topBar.add(pageLabel);
-        topBar.add(pageChoice);
+        header = new CommonHeader(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                onHeader(event.getActionCommand());
+            }
+        });
 
         JPanel blue = new JPanel(new BorderLayout());
         blue.setBackground(BLUE);
@@ -285,39 +278,30 @@ public class FunctionPage extends JFrame {
 
         WcPage wc = new WcPage();
         wcPagePanel = wc;
-        leftSlot.setOpaque(false);
-        leftSlot.add(left, "eng");
-        leftSlot.add(wc.getBody(), "wc");
-        leftCards.show(leftSlot, "eng");
-
-        rightBody.setOpaque(false);
-        rightBody.add(formSlot, "eng");
-        rightBody.add(wc.getSide(), "wc");
-        rightCards.show(rightBody, "eng");
 
         rightColumn.setOpaque(false);
         rightColumn.setPreferredSize(new Dimension(FORM_WIDTH, 100));
         rightColumn.add(readout, BorderLayout.NORTH);
-        rightColumn.add(rightBody, BorderLayout.CENTER);
+        rightColumn.add(formSlot, BorderLayout.CENTER);
 
-        JPanel stage = new JPanel(new BorderLayout(4, 0));
-        stage.setBackground(DARK);
-        stage.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-        stage.add(leftSlot, BorderLayout.CENTER);
-        stage.add(rightColumn, BorderLayout.EAST);
+        JPanel engStage = new JPanel(new BorderLayout(4, 0));
+        engStage.setBackground(DARK);
+        engStage.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        engStage.add(left, BorderLayout.CENTER);
+        engStage.add(rightColumn, BorderLayout.EAST);
 
-        page.add(topBar, BorderLayout.NORTH);
-        page.add(stage, BorderLayout.CENTER);
+        stageDeck.setOpaque(false);
+        stageDeck.add(engStage, "eng");
+        stageDeck.add(wcPagePanel, "wc");
+        stageCards.show(stageDeck, "eng");
+
+        page.add(header, BorderLayout.NORTH);
+        page.add(stageDeck, BorderLayout.CENTER);
 
         /* bar height, button width, button height — change these to fit the other screen */
         footer = new FunctionKeyBar(64, 96, 40, functionListener);
         footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
         page.add(footer, BorderLayout.SOUTH);
-        pageChoice.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                showChosenPage();
-            }
-        });
 
         setContentPane(page);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -384,23 +368,64 @@ public class FunctionPage extends JFrame {
         }
     }
 
-    /** The top drop-down. Eng is the form screen. WC is the depth-window screen. */
-    private void showChosenPage() {
-        Object item = pageChoice.getSelectedItem();
-        if ("WC".equals(item)) {
+    /** Home and the ENGM chip. The header stays put. Only the centre view changes. */
+    private void onHeader(String command) {
+        if (command.startsWith("page:")) {
+            String name = command.substring(5);
+            showPage("WC".equals(name));
+            header.setPageName(name);
+            return;
+        }
+        if ("page".equals(command)) {
+            showPage(!wcPage);
+            return;
+        }
+        resultLabel.setText(command);
+    }
+
+    /** Eng is the form screen. WC is the wire-guidance view. */
+    private void showPage(boolean wire) {
+        if (wire == wcPage) {
+            header.setPageName(wire ? "WC" : "ENGM");
+            return;
+        }
+        if (wire) {
             wcPage = true;
-            leftCards.show(leftSlot, "wc");
-            rightCards.show(rightBody, "wc");
-            rightColumn.setPreferredSize(new Dimension(300, 100));
+            rightColumn.remove(readout);
+            wcPagePanel.placeReadout(readout);
+            stageCards.show(stageDeck, "wc");
             footer.setLabels(FunctionKeyBar.KEYS, wcTubeSet ? WC_TUBE_TEXT : WC_TEXT);
         } else {
             wcPage = false;
-            leftCards.show(leftSlot, "eng");
-            rightCards.show(rightBody, "eng");
-            rightColumn.setPreferredSize(new Dimension(FORM_WIDTH, 100));
+            wcPagePanel.takeReadout();
+            rightColumn.add(readout, BorderLayout.NORTH);
+            stageCards.show(stageDeck, "eng");
             footer.setLabels(FunctionKeyBar.KEYS, FIRST_TEXT);
         }
-        rightColumn.revalidate();
+        header.setPageName(wire ? "WC" : "ENGM");
+        stageDeck.revalidate();
+        stageDeck.repaint();
+    }
+
+    /** Swap the whole wire-guidance view. The footer and the top bar stay. */
+    public void setWireGuidance(WcPage next) {
+        if (next == null || next == wcPagePanel) {
+            return;
+        }
+        if (wcPage) {
+            wcPagePanel.takeReadout();
+            rightColumn.add(readout, BorderLayout.NORTH);
+        }
+        stageDeck.remove(wcPagePanel);
+        wcPagePanel = next;
+        stageDeck.add(wcPagePanel, "wc");
+        if (wcPage) {
+            rightColumn.remove(readout);
+            wcPagePanel.placeReadout(readout);
+            stageCards.show(stageDeck, "wc");
+        }
+        stageDeck.revalidate();
+        stageDeck.repaint();
     }
 
     /** The page that is showing when the window opens, and after OK or Cancel. */
