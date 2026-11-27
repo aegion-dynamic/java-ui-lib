@@ -42,15 +42,35 @@ public class OptionGroup extends Block {
         }
     }
 
-    /** Select the choice whose label matches text. No match clears the group. */
+    /**
+     * Select the choice whose label matches text.
+     * EHWT_WAR matches EHWT WAR. No match clears the group.
+     */
     public void setSelected(String text) {
+        if (text == null || text.length() == 0) {
+            group.clearSelection();
+            return;
+        }
         for (int i = 0; i < buttons.length; i++) {
-            if (text != null && text.equals(buttons[i].getText())) {
+            String label = buttons[i].getText();
+            if (text.equals(label) || letters(text).equals(letters(label))) {
                 buttons[i].setSelected(true);
                 return;
             }
         }
         group.clearSelection();
+    }
+
+    private static String letters(String text) {
+        StringBuffer out = new StringBuffer();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == ' ' || c == '_' || c == '-') {
+                continue;
+            }
+            out.append(Character.toLowerCase(c));
+        }
+        return out.toString();
     }
 
     /** Stop clicks from changing the choice. The selected mark stays visible. */

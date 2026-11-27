@@ -1,20 +1,50 @@
 package page.backend;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import page.model.WeaponConfig;
 import page.model.WeaponConfigState;
 
 /**
- * Turns the backend's list into the names on the form, then back into one configuration.
- * The list is usually a LinkedList. These methods walk it with an iterator.
- * They copy into a new list. They do not remove anything from the list the backend gave.
+ * Reads their model collection into a list the form can filter.
+ * Their collection keeps weapon configs in a Map. {@code getAllWc()} returns the models.
+ * These methods copy. They do not remove anything from that map.
  */
 public final class WeaponConfigLists {
 
     private WeaponConfigLists() {
+    }
+
+    /**
+     * Copy every model from their {@code getAllWc()} into a new list.
+     * Pass the collection their loop walks. If what you have is the Map itself, the values are copied.
+     */
+    public static List takenFrom(Object allWc) {
+        List models = new LinkedList();
+        if (allWc instanceof Map) {
+            allWc = ((Map) allWc).values();
+        }
+        if (allWc instanceof Collection) {
+            Iterator it = ((Collection) allWc).iterator();
+            while (it.hasNext()) {
+                Object wc = it.next();
+                if (wc instanceof WeaponConfig) {
+                    models.add(wc);
+                }
+            }
+        } else if (allWc instanceof Object[]) {
+            Object[] items = (Object[]) allWc;
+            for (int i = 0; i < items.length; i++) {
+                if (items[i] instanceof WeaponConfig) {
+                    models.add(items[i]);
+                }
+            }
+        }
+        return models;
     }
 
     /**

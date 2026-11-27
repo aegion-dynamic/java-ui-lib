@@ -1,6 +1,9 @@
 package page;
 
 import java.awt.BorderLayout;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -27,11 +30,8 @@ import page.form.GroupLabel;
 import page.form.Mono;
 import page.form.OptionGroup;
 import page.model.AcousticHeadMode;
-import page.model.Depth;
-import page.model.Distance;
 import page.model.GuidanceMode;
 import page.model.OnOff;
-import page.model.Speed;
 import page.model.TargetType;
 import page.model.Engagement;
 import page.model.WeaponConfig;
@@ -181,20 +181,27 @@ public class EngagementParametersPanel extends JPanel {
         return form;
     }
 
-    /** Copy the weapon choices onto this screen. This is the stage 6 view. */
+    /**
+     * Copy a weapon configuration onto this screen.
+     * Uses only their getters. The struct has no to-methods and no configNameText.
+     * Numbers are written as text. Enums are matched to the words already in each box.
+     */
     public void applyWeapon(WeaponConfig config) {
-        weapon.setSelected(written(config.getWeapon()));
-        configName.setText(textOf(config.configNameText()));
-        text(initialSpeed, written(config.toInitialSpeed()));
-        text(orderedSpeed, written(config.toOrderedSpeed()));
-        text(orderedDepth, written(config.toOrderedDepth()));
-        text(searchSpeed, written(config.toSearchSpeed()));
-        text(enbDist, written(config.toEnbDist()));
-        text(udl, written(config.toUdl()));
-        text(ldl, written(config.toLdl()));
-        text(safetySonarRange, written(config.toSonarRange()));
+        if (config == null) {
+            return;
+        }
+        weapon.setSelected(choiceText(config.getWeapon()));
+        configName.setText(nameText(config.getConfigName()));
+        text(initialSpeed, numberText(config.getInitialSpeed()));
+        text(orderedSpeed, numberText(config.getOrderedSpeed()));
+        text(orderedDepth, numberText(config.getOrderedDepth()));
+        text(searchSpeed, numberText(config.getSearchSpeed()));
+        text(enbDist, numberText(config.getEnbDist()));
+        text(udl, numberText(config.getUdl()));
+        text(ldl, numberText(config.getLdl()));
+        text(safetySonarRange, numberText(config.getAttackSonarRange()));
         choose(ash, config.getAsh());
-        text(maxRd, written(config.toMaxRd()));
+        text(maxRd, numberText(config.getMaxRd()));
         choose(acousticHeadMode, config.getAcousticHeadMode());
         choose(attackMode, config.getAttackMode());
         choose(wakeSensor, config.getWakeGuidance());
@@ -287,24 +294,22 @@ public class EngagementParametersPanel extends JPanel {
         }
         return null;
     }
+    /** The number in Initial Speed. Their Speed is built from this decimal, not from Speed.parse. */
     public Double getInitialSpeed() {
-        Speed speed = Speed.parse(initialSpeed.getText());
-        return speed == null ? null : new Double(speed.getKnots());
+        return decimal(initialSpeed.getText());
     }
 
+    /** The number in Ordered Speed. */
     public Double getOrderedSpeed() {
-        Speed speed = Speed.parse(orderedSpeed.getText());
-        return speed == null ? null : new Double(speed.getKnots());
+        return decimal(orderedSpeed.getText());
     }
 
     public Double getOrderedDepth() {
-        Depth depth = Depth.parse(orderedDepth.getText());
-        return depth == null ? null : new Double(depth.getMeters());
+        return decimal(orderedDepth.getText());
     }
 
     public Double getSearchSpeed() {
-        Speed speed = Speed.parse(searchSpeed.getText());
-        return speed == null ? null : new Double(speed.getKnots());
+        return decimal(searchSpeed.getText());
     }
 
     public Float getEnbDist() {
@@ -354,9 +359,58 @@ public class EngagementParametersPanel extends JPanel {
     public TargetType getTargetType() {
         return (TargetType) chosen(type);
     }
+    /**
+     * The first number in the text. "24", "24.5", and "24 kn" all become 24 or 24.5.
+     * A blank box, or text with no number, is null.
+     */
+    private static Double decimal(String text) {
+        if (text == null) {
+            return null;
+        }
+        String trimmed = text.trim();
+        int start = -1;
+        int end = trimmed.length();
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if ((c >= '0' && c <= '9') || c == '.') {
+                if (start < 0) {
+                    start = i;
+                }
+            } else if (start >= 0) {
+                end = i;
+                break;
+            }
+        }
+        if (start < 0) {
+            return null;
+        }
+        if (start > 0 && trimmed.charAt(start - 1) == '-') {
+            start = start - 1;
+        }
+        try {
+            return new Double(trimmed.substring(start, end));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Knots from their getter.
+     * A Double is used as it is. A Speed object is read from its text, so getKnots is not required.
+     */
+    private static Double knotsOf(Object speed) {
+        if (speed instanceof Number) {
+            return new Double(((Number) speed).doubleValue());
+        }
+        if (speed == null) {
+            return null;
+        }
+        return decimal(String.valueOf(speed));
+    }
+
     private static Float metres(String text) {
-        Distance distance = Distance.parse(text);
-        return distance == null ? null : new Float(distance.getMeters());
+        Double value = decimal(text);
+        return value == null ? null : new Float(value.floatValue());
     }
 
 
@@ -368,16 +422,43 @@ public class EngagementParametersPanel extends JPanel {
         return value == null ? "" : value;
     }
 
-    private static String written(Object value) {
-        return value == null ? "" : value.toString();
+    /** char[] from getConfigName. Their struct has no configNameText. */
+    private static String nameText(char[] name) {
+        return name == null ? "" : new String(name);
     }
 
     /**
-     * Select the row for this value.
-     * Their boxes hold the words ("Passive", "Sub Surface", "ON", "Bg Rider Out").
-     * The getter returns the enum ("PASSIVE", "SUB_SURFACE"). setSelectedItem only
-     * matches when the box already contains that same object, so the row is found
-     * by comparing the visible text.
+     * A number for a text box.
+     * A Double or Float is written as it is.
+     * A Speed, Depth, or Distance is written from the number in its text.
+     * Null, or text with no number, leaves the box blank. It does not throw.
+     */
+    private static String numberText(Object number) {
+        Double value = knotsOf(number);
+        if (value == null) {
+            return "";
+        }
+        DecimalFormat format = new DecimalFormat("0.##");
+        format.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
+        return format.format(value.doubleValue());
+    }
+
+    /** Enum.name() when they have one, so EHWT_WAR can select the EHWT WAR radio. */
+    private static String choiceText(Object value) {
+        if (value == null) {
+            return "";
+        }
+        if (value instanceof Enum) {
+            return ((Enum) value).name();
+        }
+        return String.valueOf(value);
+    }
+
+    /**
+     * Select the row for a getter value.
+     * Their boxes hold words ("Passive", "Sub Surface", "ON", "Bg Rider Out").
+     * The getter returns the enum. setSelectedItem leaves the box blank.
+     * PASSIVE matches Passive. BG_RIDER_OUT matches Bg Rider Out. ON matches ON.
      */
     private static void choose(JComboBox box, Object value) {
         if (value == null || "".equals(value)) {
@@ -398,46 +479,41 @@ public class EngagementParametersPanel extends JPanel {
         if (value.equals(item)) {
             return true;
         }
-        String left = words(value.toString());
-        String right = words(item.toString());
-        return left.equalsIgnoreCase(right);
-    }
-
-    /** PASSIVE and BG_RIDER_OUT become the words the box shows. */
-    private static String words(String text) {
-        if (text.indexOf('_') < 0 && !constantName(text)) {
-            return text;
-        }
-        String[] parts = text.split("_");
-        StringBuffer joined = new StringBuffer();
-        for (int i = 0; i < parts.length; i++) {
-            if (i > 0) {
-                joined.append(' ');
+        String[] left = keys(value);
+        String[] right = keys(item);
+        for (int a = 0; a < left.length; a++) {
+            for (int b = 0; b < right.length; b++) {
+                if (left[a].length() > 0 && left[a].equals(right[b])) {
+                    return true;
+                }
             }
-            joined.append(word(parts[i]));
         }
-        return joined.toString();
+        return false;
     }
 
-    private static String word(String token) {
-        if (token.length() == 0) {
-            return token;
+    /** The constant name and toString, with spaces and underscores removed. */
+    private static String[] keys(Object value) {
+        String shown = letters(String.valueOf(value));
+        if (value instanceof Enum) {
+            String constant = letters(((Enum) value).name());
+            if (!constant.equals(shown)) {
+                return new String[] {constant, shown};
+            }
+            return new String[] {constant};
         }
-        String lower = token.toLowerCase();
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+        return new String[] {shown};
     }
 
-    private static boolean constantName(String text) {
-        if (text.length() == 0) {
-            return false;
-        }
+    private static String letters(String text) {
+        StringBuffer out = new StringBuffer();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (c >= 'a' && c <= 'z') {
-                return false;
+            if (c == ' ' || c == '_' || c == '-') {
+                continue;
             }
+            out.append(Character.toLowerCase(c));
         }
-        return true;
+        return out.toString();
     }
 
     private static Object chosen(JComboBox box) {

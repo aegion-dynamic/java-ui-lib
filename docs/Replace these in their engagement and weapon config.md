@@ -122,20 +122,97 @@ public WeaponConfigState getWeapon() {
 
 ---
 
-## 4. Engagement parameters — showing acoustic, attack, wake, and guidance
+## 4. Engagement parameters — writing their getters onto the form
 
-Same file. These four lines stay as they are:
+Same file. Replace the whole `applyWeapon` method. Their struct has getters and setters only. Do not call `configNameText`, `toInitialSpeed`, `toOrderedSpeed`, `toOrderedDepth`, `toSearchSpeed`, `toEnbDist`, `toUdl`, `toLdl`, `toSonarRange`, or `toMaxRd`. Those methods are not on their model.
+
+The form turns the getter into text. A `char[]` name becomes `new String`. A `Double` or `Float` becomes the number in the box. An enum is not passed to `setSelectedItem`. `choose` finds the row whose words match the enum name: `PASSIVE` matches `Passive`, `SUB_SURFACE` matches `Sub Surface`, `BG_RIDER_OUT` matches `Bg Rider Out`, `ON` matches `ON`, `EHWT_WAR` matches the EHWT WAR radio.
 
 ```java
-choose(acousticHeadMode, config.getAcousticHeadMode());
-choose(attackMode, config.getAttackMode());
-choose(wakeSensor, config.getWakeGuidance());
-choose(guidanceMode, config.getGuidanceMode());
+public void applyWeapon(WeaponConfig config) {
+    weapon.setSelected(choiceText(config.getWeapon()));
+    configName.setText(nameText(config.getConfigName()));
+    text(initialSpeed, numberText(config.getInitialSpeed()));
+    text(orderedSpeed, numberText(config.getOrderedSpeed()));
+    text(orderedDepth, numberText(config.getOrderedDepth()));
+    text(searchSpeed, numberText(config.getSearchSpeed()));
+    text(enbDist, numberText(config.getEnbDist()));
+    text(udl, numberText(config.getUdl()));
+    text(ldl, numberText(config.getLdl()));
+    text(safetySonarRange, numberText(config.getAttackSonarRange()));
+    choose(ash, config.getAsh());
+    text(maxRd, numberText(config.getMaxRd()));
+    choose(acousticHeadMode, config.getAcousticHeadMode());
+    choose(attackMode, config.getAttackMode());
+    choose(wakeSensor, config.getWakeGuidance());
+    choose(guidanceMode, config.getGuidanceMode());
+}
 ```
 
-Replace `choose`, and add `sameChoice`, `words`, `word`, and `constantName`. `setSelectedItem(enum)` leaves their boxes blank. The new `choose` picks the row by the words on screen: `PASSIVE` matches `Passive`, `SUB_SURFACE` matches `Sub Surface`, `BG_RIDER_OUT` matches `Bg Rider Out`, `ON` matches `ON`.
+`getAttackSonarRange()` is their sonar getter. If their method has another name, change that one call. The rest stay getters.
+
+Initial Speed and Ordered Speed use the same decimal path as the distances. The form does not call `Speed.parse` or `getKnots`.
+
+Reading the box gives a `Double`. Their setter receives `new Speed(thatNumber)`:
 
 ```java
+Double initial = getInitialSpeed();
+if (initial != null) {
+    config.setInitialSpeed(new Speed(initial.doubleValue()));
+}
+Double ordered = getOrderedSpeed();
+if (ordered != null) {
+    config.setOrderedSpeed(new Speed(ordered.doubleValue()));
+}
+```
+
+Writing the box back takes the number out of whatever `getInitialSpeed()` returns. A `Double` is written as it is. A `Speed` is written from the number in its text, such as `"24"` or `"24 kn"`.
+
+```java
+text(initialSpeed, numberText(knotsOf(config.getInitialSpeed())));
+text(orderedSpeed, numberText(knotsOf(config.getOrderedSpeed())));
+```
+
+`getInitialSpeed()` and `getOrderedSpeed()` on the form are:
+
+```java
+public Double getInitialSpeed() {
+    return decimal(initialSpeed.getText());
+}
+
+public Double getOrderedSpeed() {
+    return decimal(orderedSpeed.getText());
+}
+```
+
+`decimal` and `knotsOf` are the methods below `metres` in `EngagementParametersPanel`. Copy those two with `applyWeapon`.
+
+Add `nameText`, `numberText`, `choiceText`, and replace `choose` with the methods below. `setSelectedItem(enum)` leaves their boxes blank.
+
+```java
+private static String nameText(char[] name) {
+    return name == null ? "" : new String(name);
+}
+
+private static String numberText(Object number) {
+    if (!(number instanceof Number)) {
+        return "";
+    }
+    java.text.DecimalFormat format = new java.text.DecimalFormat("0.##");
+    format.setDecimalFormatSymbols(new java.text.DecimalFormatSymbols(java.util.Locale.US));
+    return format.format(((Number) number).doubleValue());
+}
+
+private static String choiceText(Object value) {
+    if (value == null) {
+        return "";
+    }
+    if (value instanceof Enum) {
+        return ((Enum) value).name();
+    }
+    return String.valueOf(value);
+}
+
 private static void choose(JComboBox box, Object value) {
     if (value == null || "".equals(value)) {
         box.setSelectedIndex(-1);
@@ -155,45 +232,40 @@ private static boolean sameChoice(Object value, Object item) {
     if (value.equals(item)) {
         return true;
     }
-    String left = words(value.toString());
-    String right = words(item.toString());
-    return left.equalsIgnoreCase(right);
-}
-
-private static String words(String text) {
-    if (text.indexOf('_') < 0 && !constantName(text)) {
-        return text;
-    }
-    String[] parts = text.split("_");
-    StringBuffer joined = new StringBuffer();
-    for (int i = 0; i < parts.length; i++) {
-        if (i > 0) {
-            joined.append(' ');
+    String[] left = keys(value);
+    String[] right = keys(item);
+    for (int a = 0; a < left.length; a++) {
+        for (int b = 0; b < right.length; b++) {
+            if (left[a].length() > 0 && left[a].equals(right[b])) {
+                return true;
+            }
         }
-        joined.append(word(parts[i]));
     }
-    return joined.toString();
+    return false;
 }
 
-private static String word(String token) {
-    if (token.length() == 0) {
-        return token;
+private static String[] keys(Object value) {
+    String shown = letters(String.valueOf(value));
+    if (value instanceof Enum) {
+        String constant = letters(((Enum) value).name());
+        if (!constant.equals(shown)) {
+            return new String[] {constant, shown};
+        }
+        return new String[] {constant};
     }
-    String lower = token.toLowerCase();
-    return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+    return new String[] {shown};
 }
 
-private static boolean constantName(String text) {
-    if (text.length() == 0) {
-        return false;
-    }
+private static String letters(String text) {
+    StringBuffer out = new StringBuffer();
     for (int i = 0; i < text.length(); i++) {
         char c = text.charAt(i);
-        if (c >= 'a' && c <= 'z') {
-            return false;
+        if (c == ' ' || c == '_' || c == '-') {
+            continue;
         }
+        out.append(Character.toLowerCase(c));
     }
-    return true;
+    return out.toString();
 }
 ```
 

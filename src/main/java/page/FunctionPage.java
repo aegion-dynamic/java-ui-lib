@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -182,7 +184,7 @@ public class FunctionPage extends JFrame {
             /* Leave the look the forms were built with. */
         }
         backend = new EngagementService();
-        weaponBackend = new WeaponConfigService();
+        weaponBackend = WeaponConfigService.modelCollection;
         weaponForm.getOkButton().addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 WeaponConfig config = weaponForm.readForm();
@@ -463,7 +465,7 @@ public class FunctionPage extends JFrame {
         if (modifyWeaponForm.isFilling()) {
             return;
         }
-        modifyChoices = WeaponConfigLists.filter(weaponBackend.all(), modifyWeaponForm.getWeaponState());
+        modifyChoices = WeaponConfigLists.filter(everyWeaponConfig(), modifyWeaponForm.getWeaponState());
         showChoiceNames(modifyWeaponForm, modifyChoices);
     }
 
@@ -472,7 +474,7 @@ public class FunctionPage extends JFrame {
         if (listWeaponForm.isFilling()) {
             return;
         }
-        listChoices = WeaponConfigLists.filter(weaponBackend.all(), listWeaponForm.getWeaponState());
+        listChoices = WeaponConfigLists.filter(everyWeaponConfig(), listWeaponForm.getWeaponState());
         showChoiceNames(listWeaponForm, listChoices);
     }
 
@@ -481,8 +483,26 @@ public class FunctionPage extends JFrame {
         if (deleteWeaponForm.isFilling()) {
             return;
         }
-        deleteChoices = WeaponConfigLists.filter(weaponBackend.all(), deleteWeaponForm.getWeaponState());
+        deleteChoices = WeaponConfigLists.filter(everyWeaponConfig(), deleteWeaponForm.getWeaponState());
         deleteWeaponForm.setNames(WeaponConfigLists.names(deleteChoices));
+    }
+
+    /**
+     * Every weapon-config model from their collection.
+     * Their loop is {@code for (Model wc : collection.getAllWc())}.
+     * Each model is copied into the list the form filters. The map stays where it is.
+     */
+    private List everyWeaponConfig() {
+        Collection allWc = weaponBackend.getAllWc();
+        List models = new LinkedList();
+        Iterator it = allWc.iterator();
+        while (it.hasNext()) {
+            Object wc = it.next();
+            if (wc instanceof WeaponConfig) {
+                models.add(wc);
+            }
+        }
+        return models;
     }
 
     /** Names from the filtered list go in the drop-down. The first configuration fills the fields. */

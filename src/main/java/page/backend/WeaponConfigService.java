@@ -1,36 +1,35 @@
 package page.backend;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Map;
 
 import page.model.WeaponConfig;
 import page.model.WeaponConfigState;
 
 /**
- * Stores weapon configurations by config name.
- * Create adds one. Modify replaces the one with the same name.
+ * The weapon-config collection.
+ * Their system keeps these in a Map on a model collection.
+ * This sample's map is the same shape. The key is the weapon type plus the config name.
+ * {@link #getAllWc()} returns every model in that map.
  */
 public class WeaponConfigService {
 
-    private final List configs = new LinkedList();
+    /** Their static collection. The page reads this. It does not build a second store. */
+    public static final WeaponConfigService modelCollection = new WeaponConfigService();
+
+    private final Map configs = new HashMap();
 
     public void create(WeaponConfig config) {
-        configs.add(config);
+        configs.put(key(config), config);
     }
 
     /** Replace the stored configuration with the same weapon type and name. */
     public void update(WeaponConfig config) {
-        ListIterator it = configs.listIterator();
-        while (it.hasNext()) {
-            WeaponConfig stored = (WeaponConfig) it.next();
-            if (sameWeapon(stored, config.getWeapon()) && sameName(stored, config.configNameText())) {
-                it.set(config);
-                return;
-            }
-        }
-        configs.add(config);
+        configs.put(key(config), config);
     }
 
     /**
@@ -41,19 +40,11 @@ public class WeaponConfigService {
         if (weapon == null) {
             return false;
         }
-        Iterator it = configs.iterator();
-        while (it.hasNext()) {
-            WeaponConfig stored = (WeaponConfig) it.next();
-            if (weapon == stored.getWeapon() && sameName(stored, name)) {
-                it.remove();
-                return true;
-            }
-        }
-        return false;
+        return configs.remove(key(weapon, name)) != null;
     }
 
     public boolean deleteByName(String name) {
-        Iterator it = configs.iterator();
+        Iterator it = configs.values().iterator();
         while (it.hasNext()) {
             WeaponConfig stored = (WeaponConfig) it.next();
             if (sameName(stored, name)) {
@@ -65,11 +56,20 @@ public class WeaponConfigService {
     }
 
     /**
-     * Every stored configuration, as a new linked list.
-     * The page filters this list. This copy is not the list inside the service.
+     * Every weapon-config model in the map.
+     * Their loop is {@code for (Model wc : collection.getAllWc())}.
+     * This returns those models. It is not the map itself.
+     */
+    public Collection getAllWc() {
+        return new LinkedList(configs.values());
+    }
+
+    /**
+     * Every stored configuration, copied out of the map.
+     * The page filters this list. This copy is not the map inside the collection.
      */
     public List all() {
-        return new LinkedList(configs);
+        return WeaponConfigLists.takenFrom(getAllWc());
     }
 
     /**
@@ -77,19 +77,25 @@ public class WeaponConfigService {
      * EHWT WAR and EHWT EXE are separate. A null type returns an empty list.
      */
     public List listByWeapon(WeaponConfigState weapon) {
-        return WeaponConfigLists.filter(configs, weapon);
+        return WeaponConfigLists.filter(all(), weapon);
     }
 
     public WeaponConfig findByName(String name) {
-        return WeaponConfigLists.named(configs, name);
+        return WeaponConfigLists.named(all(), name);
     }
 
     public String[] names() {
-        return WeaponConfigLists.names(configs);
+        return WeaponConfigLists.names(all());
     }
 
-    private static boolean sameWeapon(WeaponConfig stored, WeaponConfigState weapon) {
-        return weapon == stored.getWeapon();
+    private static String key(WeaponConfig config) {
+        return key(config.getWeapon(), config.configNameText());
+    }
+
+    /** One map entry for one weapon type and one name. WAR and EXE do not share a key. */
+    private static String key(WeaponConfigState weapon, String name) {
+        String type = weapon == null ? "" : weapon.name();
+        return type + "/" + (name == null ? "" : name);
     }
 
     private static boolean sameName(WeaponConfig stored, String name) {

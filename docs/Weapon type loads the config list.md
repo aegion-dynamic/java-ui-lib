@@ -55,23 +55,46 @@ The form does not call the backend. The page does. The backend does not know abo
 
 ---
 
-## 4. The list is a LinkedList
+## 4. Their collection is a map
 
-Their backend does not return an array. It returns a `java.util.List`, and that list is usually a `LinkedList`. Each item is one weapon configuration.
+The weapon configs are not a list they hand you. They sit in a `Map` on a model collection. The collection hangs off a static class. `getAllWc()` walks that map and gives you every model.
 
-Keep that list. Do not turn it into an array, and do not walk it with `get(i)`. On a linked list, `get(i)` starts again from the first item every time. Use an iterator, which is what `WeaponConfigLists` does.
+```java
+ModelCollection a = SomeStaticClass.modelCollection;
+for (Model wc : a.getAllWc()) {
+    // wc is one weapon-config model from the map
+}
+```
 
-The class is `src/main/java/page/backend/WeaponConfigLists.java`. Copy that class. Change `WeaponConfig` to their class name if it differs. The three methods are the whole job.
+In this sample that is:
 
-| Method | You pass | You get |
-|---|---|---|
-| `filter` | the linked list, and `EHWT_WAR` or `EHWT_EXE` | a new linked list of that type only |
-| `names` | the filtered list | the `String[]` for the Config name drop-down |
-| `named` | the filtered list, and the name the user clicked | the one configuration to put on the form |
+```java
+WeaponConfigService a = WeaponConfigService.modelCollection;
+Collection allWc = a.getAllWc();
+```
 
-`filter` copies. It does not remove items from the list the backend gave you.
+`getAllWc()` returns the models. It does not return the map. The map stays inside the collection. One entry is one weapon type plus one config name, so a WAR named `Alpha` and an EXE named `Alpha` are two entries.
 
-If their call already returns only one weapon type, skip `filter` and call `names` on that list.
+Copy each model into a list. That list is what the form filters. Do not filter the map in place, and do not remove entries while you read.
+
+```java
+private List everyWeaponConfig() {
+    Collection allWc = weaponBackend.getAllWc();
+    List models = new LinkedList();
+    Iterator it = allWc.iterator();
+    while (it.hasNext()) {
+        Object wc = it.next();
+        if (wc instanceof WeaponConfig) {
+            models.add(wc);
+        }
+    }
+    return models;
+}
+```
+
+If the method you have returns the `Map` itself, pass that map to `WeaponConfigLists.takenFrom`. It copies `map.values()`, which is the same set of models `getAllWc()` returns.
+
+Change `WeaponConfig` and `getAllWc` to their class and method names. The loop stays the same.
 
 ---
 
@@ -87,7 +110,7 @@ modifyWeaponForm.addWeaponListener(new ActionListener() {
         if (modifyWeaponForm.isFilling()) {
             return;
         }
-        List all = weaponBackend.all();
+        List all = everyWeaponConfig();
         modifyChoices = WeaponConfigLists.filter(all, modifyWeaponForm.getWeaponState());
         modifyWeaponForm.setNames(WeaponConfigLists.names(modifyChoices));
         WeaponConfig first = WeaponConfigLists.first(modifyChoices);
@@ -100,7 +123,7 @@ modifyWeaponForm.addWeaponListener(new ActionListener() {
 });
 ```
 
-`all()` is their existing call that returns the linked list. `getWeaponState()` is `EHWT_WAR`, `EHWT_EXE`, or null. It compares the words on the radios. Their enum has no `fromLabel`.
+`everyWeaponConfig()` is the loop in section 4. `getWeaponState()` is `EHWT_WAR`, `EHWT_EXE`, or null. It compares the words on the radios. Their enum has no `fromLabel`.
 
 `isFilling()` is true while the form is writing values into itself. Ignore the click then, or the fields you just filled get wiped.
 

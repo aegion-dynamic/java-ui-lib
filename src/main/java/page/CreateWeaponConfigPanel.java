@@ -1,6 +1,9 @@
 package page;
 
 import java.awt.BorderLayout;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -30,12 +33,9 @@ import page.form.GroupLabel;
 import page.form.Mono;
 import page.form.OptionGroup;
 import page.model.AcousticHeadMode;
-import page.model.Depth;
-import page.model.Distance;
 import page.model.GuidanceMode;
 import page.model.InternalGuidanceMode;
 import page.model.OnOff;
-import page.model.Speed;
 import page.model.TargetType;
 import page.model.WeaponConfig;
 import page.model.WeaponConfigState;
@@ -49,9 +49,7 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Speed[] SPEEDS = {
-        new Speed(24), new Speed(30), new Speed(35), new Speed(40), new Speed(45), new Speed(50)
-    };
+    private static final String[] SPEEDS = {"24", "30", "35", "40", "45", "50"};
 
     private final OptionGroup weapon;
     private final JTextField configName;
@@ -239,10 +237,10 @@ public class CreateWeaponConfigPanel extends JPanel {
         WeaponConfig config = new WeaponConfig();
         config.setWeapon(weaponState(weapon.getSelected()));
         config.setConfigName(getConfigName().toCharArray());
-        config.setInitialSpeed(knotsOf(chosen(initialSpeed)));
-        config.setOrderedSpeed(knots(orderedSpeed.getText()));
-        config.setOrderedDepth(metresDeep(orderedDepth.getText()));
-        config.setSearchSpeed(knots(searchSpeed.getText()));
+        config.setInitialSpeed(decimal(selected(initialSpeed)));
+        config.setOrderedSpeed(decimal(orderedSpeed.getText()));
+        config.setOrderedDepth(decimal(orderedDepth.getText()));
+        config.setSearchSpeed(decimal(searchSpeed.getText()));
         config.setEnbDist(metres(enbDist.getText()));
         config.setUdl(metres(udl.getText()));
         config.setLdl(metres(ldl.getText()));
@@ -315,29 +313,34 @@ public class CreateWeaponConfigPanel extends JPanel {
 
     /** Fill every control from a saved weapon configuration. */
     public void apply(WeaponConfig config) {
-        filling = true;
-        weapon.setSelected(written(config.getWeapon()));
-        if (nameIsList) {
-            nameList.setSelectedItem(config.configNameText());
-        } else {
-            configName.setText(config.configNameText());
+        if (config == null) {
+            return;
         }
-        showChoice(initialSpeed, config.toInitialSpeed());
-        orderedSpeed.setText(written(config.toOrderedSpeed()));
-        orderedDepth.setText(written(config.toOrderedDepth()));
-        searchSpeed.setText(written(config.toSearchSpeed()));
-        enbDist.setText(written(config.toEnbDist()));
-        udl.setText(written(config.toUdl()));
-        ldl.setText(written(config.toLdl()));
+        filling = true;
+        weapon.setSelected(choiceText(config.getWeapon()));
+        String savedName = nameText(config.getConfigName());
+        if (nameIsList) {
+            nameList.setSelectedItem(savedName);
+        } else {
+            configName.setText(savedName);
+        }
+        showChoice(initialSpeed, knotsOf(config.getInitialSpeed()));
+        orderedSpeed.setText(numberText(config.getOrderedSpeed()));
+        orderedDepth.setText(numberText(config.getOrderedDepth()));
+        searchSpeed.setText(numberText(config.getSearchSpeed()));
+        enbDist.setText(numberText(config.getEnbDist()));
+        udl.setText(numberText(config.getUdl()));
+        ldl.setText(numberText(config.getLdl()));
         showChoice(ash, config.getAsh());
-        maxRd.setText(written(config.toMaxRd()));
+        maxRd.setText(numberText(config.getMaxRd()));
         showChoice(acousticHeadMode, config.getAcousticHeadMode());
-        attackSonarRange.setText(written(config.toSonarRange()));
+        attackSonarRange.setText(numberText(config.getAttackSonarRange()));
         showChoice(attackMode, config.getAttackMode());
         showChoice(wakeGuidance, config.getWakeGuidance());
         showChoice(guidanceMode, config.getGuidanceMode());
         showChoice(homingMode, config.getHomingMode());
-        comments.setText(config.getComments());
+        String note = config.getComments();
+        comments.setText(note == null ? "" : note);
         filling = false;
         scrollToTop();
     }
@@ -427,6 +430,38 @@ public class CreateWeaponConfigPanel extends JPanel {
         box.setSelectedIndex(-1);
     }
 
+    /** char[] from getConfigName. Their struct has no configNameText. */
+    private static String nameText(char[] name) {
+        return name == null ? "" : new String(name);
+    }
+
+    /**
+     * A number for a text box.
+     * A Double or Float is written as it is.
+     * A Speed, Depth, or Distance is written from the number in its text.
+     * Null, or text with no number, leaves the box blank. It does not throw.
+     */
+    private static String numberText(Object number) {
+        Double value = knotsOf(number);
+        if (value == null) {
+            return "";
+        }
+        DecimalFormat format = new DecimalFormat("0.##");
+        format.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
+        return format.format(value.doubleValue());
+    }
+
+    /** Enum.name(), so EHWT_WAR selects the EHWT WAR radio. */
+    private static String choiceText(Object value) {
+        if (value == null) {
+            return "";
+        }
+        if (value instanceof Enum) {
+            return ((Enum) value).name();
+        }
+        return String.valueOf(value);
+    }
+
     private static void showChoice(JComboBox box, Object value) {
         if (value == null || "".equals(value)) {
             box.setSelectedIndex(-1);
@@ -434,8 +469,7 @@ public class CreateWeaponConfigPanel extends JPanel {
         }
         for (int i = 0; i < box.getItemCount(); i++) {
             Object item = box.getItemAt(i);
-            if (item != null && (value.equals(item)
-                    || words(value.toString()).equalsIgnoreCase(words(item.toString())))) {
+            if (item != null && sameChoice(value, item)) {
                 box.setSelectedIndex(i);
                 return;
             }
@@ -443,67 +477,122 @@ public class CreateWeaponConfigPanel extends JPanel {
         box.setSelectedIndex(-1);
     }
 
-    private static String words(String text) {
-        if (text.indexOf('_') < 0 && !constantName(text)) {
-            return text;
+    private static boolean sameChoice(Object value, Object item) {
+        if (value.equals(item)) {
+            return true;
         }
-        String[] parts = text.split("_");
-        StringBuffer joined = new StringBuffer();
-        for (int i = 0; i < parts.length; i++) {
-            if (i > 0) {
-                joined.append(' ');
-            }
-            if (parts[i].length() == 0) {
-                continue;
-            }
-            String lower = parts[i].toLowerCase();
-            joined.append(Character.toUpperCase(lower.charAt(0)));
-            joined.append(lower.substring(1));
+        if (sameNumber(value, item)) {
+            return true;
         }
-        return joined.toString();
+        String[] left = keys(value);
+        String[] right = keys(item);
+        for (int a = 0; a < left.length; a++) {
+            for (int b = 0; b < right.length; b++) {
+                if (left[a].length() > 0 && left[a].equals(right[b])) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    private static boolean constantName(String text) {
-        if (text.length() == 0) {
+    /** 24 from getInitialSpeed matches the Speed row whose text is 24. */
+    private static boolean sameNumber(Object value, Object item) {
+        Double left = asNumber(value);
+        Double right = asNumber(item);
+        if (left == null || right == null) {
             return false;
         }
+        return Double.doubleToLongBits(left.doubleValue()) == Double.doubleToLongBits(right.doubleValue());
+    }
+
+    private static Double asNumber(Object value) {
+        if (value instanceof Number) {
+            return new Double(((Number) value).doubleValue());
+        }
+        if (value == null) {
+            return null;
+        }
+        return decimal(String.valueOf(value));
+    }
+
+    private static String[] keys(Object value) {
+        String shown = letters(String.valueOf(value));
+        if (value instanceof Enum) {
+            String constant = letters(((Enum) value).name());
+            if (!constant.equals(shown)) {
+                return new String[] {constant, shown};
+            }
+            return new String[] {constant};
+        }
+        return new String[] {shown};
+    }
+
+    private static String letters(String text) {
+        StringBuffer out = new StringBuffer();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (c >= 'a' && c <= 'z') {
-                return false;
+            if (c == ' ' || c == '_' || c == '-') {
+                continue;
             }
+            out.append(Character.toLowerCase(c));
         }
-        return true;
+        return out.toString();
     }
 
     private static Object chosen(JComboBox box) {
         return box.getSelectedItem();
     }
 
-    private static Double knotsOf(Object item) {
-        if (!(item instanceof Speed)) {
+    /** The first number in the text. "24", "24.5", and "24 kn" all become a decimal. */
+    private static Double decimal(String text) {
+        if (text == null) {
             return null;
         }
-        return new Double(((Speed) item).getKnots());
+        String trimmed = text.trim();
+        int start = -1;
+        int end = trimmed.length();
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if ((c >= '0' && c <= '9') || c == '.') {
+                if (start < 0) {
+                    start = i;
+                }
+            } else if (start >= 0) {
+                end = i;
+                break;
+            }
+        }
+        if (start < 0) {
+            return null;
+        }
+        if (start > 0 && trimmed.charAt(start - 1) == '-') {
+            start = start - 1;
+        }
+        try {
+            return new Double(trimmed.substring(start, end));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
-    private static Double knots(String text) {
-        Speed speed = Speed.parse(text);
-        return speed == null ? null : new Double(speed.getKnots());
-    }
-
-    private static Double metresDeep(String text) {
-        Depth depth = Depth.parse(text);
-        return depth == null ? null : new Double(depth.getMeters());
+    /**
+     * Knots from their getter.
+     * A number is kept. A Speed object is read from its text, so getKnots is not required.
+     */
+    private static Double knotsOf(Object speed) {
+        if (speed instanceof Number) {
+            return new Double(((Number) speed).doubleValue());
+        }
+        if (speed == null) {
+            return null;
+        }
+        return decimal(String.valueOf(speed));
     }
 
     private static Float metres(String text) {
-        Distance distance = Distance.parse(text);
-        return distance == null ? null : new Float(distance.getMeters());
-    }
-
-    private static String written(Object value) {
-        return value == null ? "" : value.toString();
+        Double value = decimal(text);
+        return value == null ? null : new Float(value.floatValue());
     }
 
     private static String selected(JComboBox box) {
